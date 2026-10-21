@@ -186,6 +186,21 @@ export const Store = {
       if (formData.allergies) patient.allergies = formData.allergies;
     }
 
+    // If saving doctorsOrders, support both array and { orders, attendingPhysician }
+    if (formKey === 'doctorsOrders' && formData) {
+      if (Array.isArray(formData)) {
+        patient.forms.doctorsOrders = formData;
+      } else if (formData.orders) {
+        patient.forms.doctorsOrders = formData.orders;
+        if (formData.attendingPhysician) {
+          patient.attendingPhysician = formData.attendingPhysician;
+        }
+      }
+      if (formData.attendingPhysician) {
+        patient.attendingPhysician = formData.attendingPhysician;
+      }
+    }
+
     const patients = this.getPatients();
     const idx = patients.findIndex(p => p.id === patientId);
     if (idx !== -1) {

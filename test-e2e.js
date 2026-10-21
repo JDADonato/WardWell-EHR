@@ -201,6 +201,46 @@ async function runTest() {
       if (!formPaperExists) throw new Error(`Form ${formKey} failed to render!`);
     }
 
+    // Verify Vitals Chart Colors: Pulse (red) & Temp (black)
+    console.log('6b. Verifying Vitals Chart Colors (Pulse -> Red, Temp -> Black)...');
+    await evaluate('window.location.hash = "#/patients/pt_delacruz01/vitals"');
+    await delay(300);
+    const hasPulseRedLine = await evaluate('!!document.querySelector(\'path[stroke="#d32f2f"]\')');
+    const hasTempBlackLine = await evaluate('!!document.querySelector(\'path[stroke="#000000"]\')');
+    const hasPulseRedDot = await evaluate('!!document.querySelector(\'circle[fill="#d32f2f"]\')');
+    const hasTempBlackDot = await evaluate('!!document.querySelector(\'circle[fill="#000000"]\')');
+    console.log(`   Pulse Line Red (#d32f2f): ${hasPulseRedLine} | Temp Line Black (#000000): ${hasTempBlackLine}`);
+    console.log(`   Pulse Dots Red: ${hasPulseRedDot} | Temp Dots Black: ${hasTempBlackDot}`);
+    if (!hasPulseRedLine || !hasTempBlackLine) {
+      throw new Error('Vitals chart did not apply Pulse -> red or Temp -> black stroke colors!');
+    }
+
+    // Verify Doctor\'s Orders Doctor Name Typing
+    console.log('6c. Verifying Doctor\'s Orders Attending Physician Editing / Typing...');
+    await evaluate('window.location.hash = "#/patients/pt_delacruz01/doctors-order"');
+    await delay(300);
+    // Click inline Change button
+    await evaluate('document.getElementById("btn-edit-doctor-inline")?.click()');
+    await delay(200);
+    const inlineInputExists = await evaluate('!!document.getElementById("input-inline-doctor-name")');
+    console.log(`   Inline Doctor Input visible: ${inlineInputExists}`);
+    if (!inlineInputExists) throw new Error('Inline doctor name input failed to open!');
+
+    // Type new doctor name and save
+    await evaluate(`(() => {
+      const input = document.getElementById("input-inline-doctor-name");
+      input.value = "Dr. Robert P. Tan, MD (Cardiology)";
+      document.getElementById("btn-save-inline-doctor").click();
+    })()`);
+    await delay(300);
+
+    const updatedStripDoc = await evaluate('document.getElementById("doc-order-physician-view")?.textContent?.trim()');
+    const updatedBannerDoc = await evaluate('document.getElementById("banner-doctor-val")?.textContent?.trim()');
+    console.log(`   Updated Strip Doctor: "${updatedStripDoc}" | Updated Banner Doctor: "${updatedBannerDoc}"`);
+    if (updatedStripDoc !== 'Dr. Robert P. Tan, MD (Cardiology)' || updatedBannerDoc !== 'Dr. Robert P. Tan, MD (Cardiology)') {
+      throw new Error(`Doctor name did not update correctly! Got Strip: "${updatedStripDoc}", Banner: "${updatedBannerDoc}"`);
+    }
+
     // Test Edit Mode Toggle and Action Bar immediate reactivity
     console.log('7. Testing View -> Edit Mode Toggle on Vitals Form and Action Bar Reactivity...');
     await evaluate('window.location.hash = "#/patients/pt_delacruz01/vitals"');

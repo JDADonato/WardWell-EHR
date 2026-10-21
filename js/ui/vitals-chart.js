@@ -106,10 +106,10 @@ export function renderVitalsChart(container, vitalsData = []) {
       dotsHtml += `<circle cx="${x}" cy="${getYLeft(bpDia)}" r="4" fill="#60805e" stroke="#fff" stroke-width="1.5"><title>BP Dia: ${bpDia}</title></circle>`;
     }
     if (p && !isNaN(p)) {
-      dotsHtml += `<circle cx="${x}" cy="${getYLeft(p)}" r="4" fill="#8c4258" stroke="#fff" stroke-width="1.5"><title>Pulse/HR: ${p} bpm</title></circle>`;
+      dotsHtml += `<circle cx="${x}" cy="${getYLeft(p)}" r="4" fill="#d32f2f" stroke="#fff" stroke-width="1.5"><title>Pulse/HR: ${p} bpm</title></circle>`;
     }
     if (t && !isNaN(t)) {
-      dotsHtml += `<circle cx="${x}" cy="${getYTemp(t)}" r="4" fill="#83a081" stroke="#fff" stroke-width="1.5"><title>Temp: ${t} °C</title></circle>`;
+      dotsHtml += `<circle cx="${x}" cy="${getYTemp(t)}" r="4" fill="#000000" stroke="#fff" stroke-width="1.5"><title>Temp: ${t} °C</title></circle>`;
     }
 
     // X Axis Label
@@ -126,8 +126,8 @@ export function renderVitalsChart(container, vitalsData = []) {
       <!-- Series Lines with animated dashoffset -->
       <path d="${bpHighPath}" fill="none" stroke="#3f603d" stroke-width="2.5" class="chart-line" />
       <path d="${bpLowPath}" fill="none" stroke="#60805e" stroke-width="2" stroke-dasharray="4,2" class="chart-line" />
-      <path d="${pulsePath}" fill="none" stroke="#8c4258" stroke-width="2.5" class="chart-line" />
-      <path d="${tempPath}" fill="none" stroke="#83a081" stroke-width="2.5" class="chart-line" />
+      <path d="${pulsePath}" fill="none" stroke="#d32f2f" stroke-width="2.5" class="chart-line" />
+      <path d="${tempPath}" fill="none" stroke="#000000" stroke-width="2.5" class="chart-line" />
 
       <!-- Data Dots -->
       ${dotsHtml}

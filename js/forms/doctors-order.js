@@ -4,6 +4,8 @@ import { formatDate, getCurrentISODateTime, getCurrentISODate, getCurrentISOTime
 import { generateId } from '../utils/id.js';
 import { showConfirm } from '../ui/confirm.js';
 import { Modal } from '../ui/modal.js';
+import { Store } from '../store.js';
+import { Toast } from '../ui/toast.js';
 
 export const DoctorsOrderForm = {
   renderView(patient, onEdit, onPrint) {
@@ -54,8 +56,31 @@ export const DoctorsOrderForm = {
       });
     }
 
+    const phys = patient.attendingPhysician || '—';
+    const physicianSlot = `
+      <div class="strip-item strip-item-physician" id="doc-order-physician-box">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
+          <span class="strip-label" style="margin-bottom: 0;">Attending Physician</span>
+          <button type="button" class="btn-text-action no-print" id="btn-edit-doctor-inline" title="Click to change doctor's name" style="font-size: 0.72rem; color: var(--sage-dark); font-weight: 600; cursor: pointer; background: none; border: none; padding: 0; display: inline-flex; align-items: center; gap: 0.25rem;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            <span>Change</span>
+          </button>
+        </div>
+        <div id="doc-order-physician-view" class="strip-value" title="${phys}" style="cursor: pointer;">
+          ${phys}
+        </div>
+        <div id="doc-order-physician-edit" class="no-print" style="display: none; margin-top: 0.35rem;">
+          <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
+            <input type="text" id="input-inline-doctor-name" class="form-control form-control-sm" value="${patient.attendingPhysician || ''}" placeholder="Dr. Full Name, MD (Specialty)" style="flex: 1; min-width: 160px; height: 32px; font-size: 0.82rem;" />
+            <button type="button" class="btn btn-primary btn-sm" id="btn-save-inline-doctor" style="height: 32px; padding: 0 0.65rem; font-size: 0.78rem; font-weight: 600;">Save</button>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-cancel-inline-doctor" style="height: 32px; padding: 0 0.5rem; font-size: 0.78rem;">✕</button>
+          </div>
+        </div>
+      </div>
+    `;
+
     container.innerHTML = `
-      ${renderFormStandardHeader(patient, "Doctor's Orders / Nurses Compliance Sheet", 'WW-ORD-04')}
+      ${renderFormStandardHeader(patient, "Doctor's Orders / Nurses Compliance Sheet", 'WW-ORD-04', { physicianSlot })}
 
       <!-- Compliance Legend as seen in reference -->
       <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; background-color: var(--mist); padding: 0.65rem 1rem; border-radius: var(--radius-md); font-size: 0.8rem; margin-bottom: 1.25rem; border: 1px solid var(--border-light);">
@@ -84,6 +109,58 @@ export const DoctorsOrderForm = {
         </table>
       </div>
     `;
+
+    // Wire up inline doctor's name change
+    const btnEditDoc = container.querySelector('#btn-edit-doctor-inline');
+    const viewDoc = container.querySelector('#doc-order-physician-view');
+    const editDoc = container.querySelector('#doc-order-physician-edit');
+    const inputDoc = container.querySelector('#input-inline-doctor-name');
+    const btnSaveDoc = container.querySelector('#btn-save-inline-doctor');
+    const btnCancelDoc = container.querySelector('#btn-cancel-inline-doctor');
+
+    function openDocEdit() {
+      if (!editDoc || !viewDoc) return;
+      viewDoc.style.display = 'none';
+      if (btnEditDoc) btnEditDoc.style.display = 'none';
+      editDoc.style.display = 'block';
+      inputDoc?.focus();
+      inputDoc?.select();
+    }
+
+    function closeDocEdit() {
+      if (!editDoc || !viewDoc) return;
+      editDoc.style.display = 'none';
+      viewDoc.style.display = 'block';
+      if (btnEditDoc) btnEditDoc.style.display = 'inline-flex';
+    }
+
+    function saveDocEdit() {
+      const newDoc = inputDoc?.value.trim();
+      if (!newDoc) return;
+      patient.attendingPhysician = newDoc;
+      Store.savePatient(patient);
+      Toast.success(`Attending physician updated to "${newDoc}".`, 'Doctor Updated');
+      if (viewDoc) {
+        viewDoc.textContent = newDoc;
+        viewDoc.title = newDoc;
+      }
+      const bannerDoc = document.getElementById('banner-doctor-val');
+      if (bannerDoc) bannerDoc.textContent = newDoc;
+      closeDocEdit();
+    }
+
+    btnEditDoc?.addEventListener('click', openDocEdit);
+    viewDoc?.addEventListener('click', openDocEdit);
+    btnCancelDoc?.addEventListener('click', closeDocEdit);
+    btnSaveDoc?.addEventListener('click', saveDocEdit);
+    inputDoc?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        saveDocEdit();
+      } else if (e.key === 'Escape') {
+        closeDocEdit();
+      }
+    });
 
     return container;
   },
@@ -204,8 +281,15 @@ export const DoctorsOrderForm = {
       }));
     }
 
+    const editPhysicianSlot = `
+      <div class="strip-item strip-item-physician" style="background-color: var(--mist); border-radius: var(--radius-sm); padding: 0.35rem 0.55rem; border: 1px solid var(--border-color);">
+        <label class="strip-label" for="edit-order-physician" style="display: block; margin-bottom: 0.2rem; font-weight: 700; color: var(--sage-dark);">Attending Physician</label>
+        <input type="text" id="edit-order-physician" class="form-control form-control-sm" value="${patient.attendingPhysician || ''}" placeholder="Dr. Full Name, MD (Specialty)" style="height: 32px; font-size: 0.85rem; font-weight: 600; background-color: var(--bg-surface);" />
+      </div>
+    `;
+
     container.innerHTML = `
-      ${renderFormStandardHeader(patient, "Doctor's Orders / Nurses Compliance Sheet (Edit Mode)", 'WW-ORD-04')}
+      ${renderFormStandardHeader(patient, "Doctor's Orders / Nurses Compliance Sheet (Edit Mode)", 'WW-ORD-04', { physicianSlot: editPhysicianSlot })}
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <div style="font-size: 0.84rem; color: var(--text-secondary);">
@@ -258,7 +342,9 @@ export const DoctorsOrderForm = {
     });
 
     container.querySelector('#btn-save-orders').addEventListener('click', () => {
-      onSave(orders);
+      const docInput = container.querySelector('#edit-order-physician');
+      const attendingPhysician = docInput ? docInput.value.trim() : patient.attendingPhysician;
+      onSave({ orders, attendingPhysician });
     });
 
     container.querySelector('#btn-cancel-orders').addEventListener('click', onCancel);

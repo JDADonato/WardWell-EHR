@@ -2,7 +2,7 @@
 import { CONFIG } from '../config.js';
 import { formatDate } from '../utils/dates.js';
 
-export function renderFormStandardHeader(patient, formTitle, formCode = 'WW-FRM-01') {
+export function renderFormStandardHeader(patient, formTitle, formCode = 'WW-FRM-01', options = {}) {
   const fullName = `${patient.lastName}, ${patient.firstName} ${patient.middleName || ''}`.trim();
   const ageSex = `${patient.age || '—'} / ${patient.sex || '—'}`;
   const hospNo = patient.hospitalNo || '—';
@@ -53,10 +53,12 @@ export function renderFormStandardHeader(patient, formTitle, formCode = 'WW-FRM-
           <span class="strip-label">Admission Date</span>
           <span class="strip-value">${admDate}</span>
         </div>
+        ${options.physicianSlot ? options.physicianSlot : `
         <div class="strip-item">
           <span class="strip-label">Attending Physician</span>
           <span class="strip-value" title="${phys}">${phys}</span>
         </div>
+        `}
       </div>
     </header>
   `;

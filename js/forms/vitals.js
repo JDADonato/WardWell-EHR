@@ -80,8 +80,8 @@ export const VitalsForm = {
           <div class="vitals-legend">
             <span class="legend-item"><span class="legend-dot" style="background-color: #3f603d;"></span> BP Systolic</span>
             <span class="legend-item"><span class="legend-dot" style="background-color: #60805e;"></span> BP Diastolic</span>
-            <span class="legend-item"><span class="legend-dot" style="background-color: #8c4258;"></span> Pulse (bpm)</span>
-            <span class="legend-item"><span class="legend-dot" style="background-color: #83a081;"></span> Temp (°C)</span>
+            <span class="legend-item"><span class="legend-dot" style="background-color: #d32f2f;"></span> Pulse (bpm)</span>
+            <span class="legend-item"><span class="legend-dot" style="background-color: #000000;"></span> Temp (°C)</span>
           </div>
         </div>
         <div id="vitals-chart-stage" class="chart-svg-container"></div>

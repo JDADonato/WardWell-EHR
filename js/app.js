@@ -750,7 +750,7 @@ function renderPatientRecordView(patientId, formKey = 'admission') {
             <span><strong>Room:</strong> ${patient.roomBed}</span>
             <span><strong>ID:</strong> ${patient.hospitalNo}</span>
             <span class="banner-meta-desktop"><strong>Age/Sex:</strong> ${patient.age} / ${patient.sex}</span>
-            <span class="banner-meta-desktop"><strong>Doctor:</strong> ${patient.attendingPhysician}</span>
+            <span class="banner-meta-desktop"><strong>Doctor:</strong> <span id="banner-doctor-val">${patient.attendingPhysician}</span></span>
             ${patient.allergies && !patient.allergies.toLowerCase().includes('none')
               ? `<span class="allergy-pill">Allergies: ${patient.allergies}</span>`
               : ''
@@ -1119,6 +1119,9 @@ function renderActiveForm() {
 
   const onSave = (formData) => {
     Store.saveFormData(patient.id, formMeta.storeKey, formData);
+    const updatedPt = Store.getPatientById(patient.id);
+    const docVal = document.getElementById('banner-doctor-val');
+    if (docVal && updatedPt) docVal.textContent = updatedPt.attendingPhysician || '';
     Toast.success(`"${formMeta.title}" saved successfully.`, 'Form Saved');
     setEditMode(false);
   };
