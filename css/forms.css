@@ -79,10 +79,10 @@
 /* Patient Header Strip across all forms */
 .form-patient-strip {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.75rem 1.25rem;
   background-color: var(--mist);
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1.15rem;
   border-radius: var(--radius-md);
   font-size: 0.84rem;
   border: 1px solid var(--border-light);
@@ -91,6 +91,16 @@
 .strip-item {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+}
+
+.form-patient-strip > .strip-item:first-child {
+  grid-column: span 2;
+}
+
+.form-patient-strip > .strip-item:last-child,
+.strip-item-physician {
+  grid-column: span 2;
 }
 
 .strip-label {
@@ -99,14 +109,16 @@
   letter-spacing: 0.05em;
   color: var(--text-muted);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .strip-value {
   font-weight: 600;
   color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.35;
 }
 
 /* ==========================================================================
@@ -436,10 +448,13 @@
   .strip-value {
     word-break: break-word;
     overflow-wrap: anywhere;
+    white-space: normal;
   }
 
-  /* Attending Physician spans full width across both columns so it never cuts off! */
-  .strip-item:last-child {
+  /* Patient Name and Attending Physician span full width across both columns so they never cut off! */
+  .form-patient-strip > .strip-item:first-child,
+  .form-patient-strip > .strip-item:last-child,
+  .strip-item-physician {
     grid-column: 1 / -1;
   }
 
