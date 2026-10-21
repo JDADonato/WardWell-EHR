@@ -94,7 +94,7 @@ export const VitalsForm = {
               <th>Date/Shift/Time</th>
               <th>BP</th>
               <th>HR (bpm)</th>
-              <th>RR (cpm)</th>
+              <th>RR (bpm)</th>
               <th>Temp</th>
               <th>SpO2</th>
               <th>Cough</th>

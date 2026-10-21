@@ -201,18 +201,22 @@ async function runTest() {
       if (!formPaperExists) throw new Error(`Form ${formKey} failed to render!`);
     }
 
-    // Verify Vitals Chart Colors: Pulse (red) & Temp (black)
-    console.log('6b. Verifying Vitals Chart Colors (Pulse -> Red, Temp -> Black)...');
+    // Verify Vitals Chart Colors: Pulse (red) & Temp (black) and RR (bpm) label
+    console.log('6b. Verifying Vitals Chart Colors (Pulse -> Red, Temp -> Black) & RR (bpm)...');
     await evaluate('window.location.hash = "#/patients/pt_delacruz01/vitals"');
     await delay(300);
     const hasPulseRedLine = await evaluate('!!document.querySelector(\'path[stroke="#d32f2f"]\')');
     const hasTempBlackLine = await evaluate('!!document.querySelector(\'path[stroke="#000000"]\')');
     const hasPulseRedDot = await evaluate('!!document.querySelector(\'circle[fill="#d32f2f"]\')');
     const hasTempBlackDot = await evaluate('!!document.querySelector(\'circle[fill="#000000"]\')');
+    const hasRrBpmHeader = await evaluate('Array.from(document.querySelectorAll("th")).some(th => th.textContent.includes("RR (bpm)"))');
     console.log(`   Pulse Line Red (#d32f2f): ${hasPulseRedLine} | Temp Line Black (#000000): ${hasTempBlackLine}`);
-    console.log(`   Pulse Dots Red: ${hasPulseRedDot} | Temp Dots Black: ${hasTempBlackDot}`);
+    console.log(`   Pulse Dots Red: ${hasPulseRedDot} | Temp Dots Black: ${hasTempBlackDot} | RR (bpm) header: ${hasRrBpmHeader}`);
     if (!hasPulseRedLine || !hasTempBlackLine) {
       throw new Error('Vitals chart did not apply Pulse -> red or Temp -> black stroke colors!');
+    }
+    if (!hasRrBpmHeader) {
+      throw new Error('Vital signs table header did not find "RR (bpm)"!');
     }
 
     // Verify Doctor\'s Orders Doctor Name Typing

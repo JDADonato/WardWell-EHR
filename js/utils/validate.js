@@ -21,7 +21,7 @@ export function isAbnormalVital(key, value) {
     case 'hr': // Normal: 60 - 100 bpm
     case 'pulse':
       return num < 60 || num > 100;
-    case 'rr': // Normal: 12 - 20 cpm
+    case 'rr': // Normal: 12 - 20 bpm (breaths per min)
       return num < 12 || num > 22;
     case 'spo2': // Normal: >= 95%
       return num < 95;
