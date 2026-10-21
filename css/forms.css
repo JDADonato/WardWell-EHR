@@ -1,0 +1,483 @@
+/* WardWell EHR - Unified Clinical Form Styling */
+
+.form-paper {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 20px rgba(15, 16, 21, 0.05), 0 1px 3px rgba(15, 16, 21, 0.02);
+  max-width: 980px;
+  margin: 0 auto 3rem auto;
+  padding: 2.5rem 2.75rem;
+  transition: box-shadow var(--transition-normal);
+}
+
+/* ==========================================================================
+   STANDARDIZED CLINICAL FORM HEADER
+   ========================================================================== */
+.form-header-standard {
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.form-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.form-header-hospital {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.form-header-logo {
+  height: 48px;
+  width: auto;
+}
+
+.form-header-hosp-info h2 {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.form-header-hosp-info p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.form-header-code-block {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.form-title-banner {
+  background-color: var(--sage-subtle);
+  border-left: 4px solid var(--sage-dark);
+  padding: 0.65rem 1rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: 1rem;
+}
+
+.form-title-banner h1 {
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sage-darker);
+}
+
+/* Patient Header Strip across all forms */
+.form-patient-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem 1.25rem;
+  background-color: var(--mist);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.84rem;
+  border: 1px solid var(--border-light);
+}
+
+.strip-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.strip-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.strip-value {
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   FORM SECTIONS & GRIDS
+   ========================================================================== */
+.form-section {
+  margin-bottom: 2rem;
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sage-dark);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.45rem;
+  margin-bottom: 1.15rem;
+}
+
+.form-section-subtitle {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Responsive Form Grids */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.85rem;
+}
+
+.grid-1-3 {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  gap: 1rem;
+}
+
+.col-span-2 { grid-column: span 2; }
+.col-span-3 { grid-column: span 3; }
+.col-span-4 { grid-column: span 4; }
+.col-span-full { grid-column: 1 / -1; }
+
+/* View Mode Details Layout (Read-only Document) */
+.view-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px dashed var(--border-light);
+}
+
+.view-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.view-value {
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  min-height: 1.4em;
+  word-break: break-word;
+}
+
+.view-value.empty {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.84rem;
+}
+
+/* View Mode Checkbox/Radio pills */
+.view-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.view-tag {
+  background-color: var(--sage-subtle);
+  color: var(--sage-dark);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   SIGNATURE PADS (CANVAS)
+   ========================================================================== */
+.signature-card {
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.signature-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.signature-canvas-wrap {
+  position: relative;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  overflow: hidden;
+  height: 130px;
+}
+
+.signature-canvas {
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.signature-line-guide {
+  position: absolute;
+  bottom: 24px;
+  left: 20px;
+  right: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+}
+
+.signature-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.signature-preview-img {
+  max-height: 80px;
+  max-width: 200px;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 4px;
+}
+
+/* ==========================================================================
+   VITALS TREND CHART
+   ========================================================================== */
+.vitals-chart-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.vitals-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.vitals-legend {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.82rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.chart-svg-container {
+  width: 100%;
+  height: 240px;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   MAR SPECIFIC TIME SLOTS GRID
+   ========================================================================== */
+.mar-table th.time-slot-header {
+  text-align: center;
+  padding: 0.4rem 0.6rem;
+  min-width: 60px;
+}
+
+.mar-slot-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.mar-slot-given {
+  background-color: var(--status-admitted-bg);
+  color: var(--status-admitted-text);
+  border-color: var(--status-admitted-text);
+}
+
+.mar-slot-held {
+  background-color: var(--status-fordischarge-bg);
+  color: var(--status-fordischarge-text);
+  border-color: var(--status-fordischarge-text);
+}
+
+.mar-slot-refused {
+  background-color: var(--status-critical-bg);
+  color: var(--status-critical-text);
+  border-color: var(--status-critical-border);
+}
+
+.mar-slot-notyet {
+  background-color: var(--mist);
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   RESPONSIVE ADJUSTMENTS FOR FORMS (Mobile Native Experience)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .form-paper {
+    padding: 1.15rem 0.85rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+  }
+
+  .grid-2, .grid-3, .grid-4, .grid-1-3, .grid-6 {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .col-span-2, .col-span-3, .col-span-4, .col-span-6 {
+    grid-column: span 1;
+  }
+
+  .form-header-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .form-header-logo-lockup {
+    gap: 0.65rem;
+  }
+
+  .form-header-logo {
+    height: 38px;
+    width: 38px;
+  }
+
+  .form-header-code-block {
+    text-align: left;
+    width: 100%;
+    padding-top: 0.35rem;
+    border-top: 1px dashed var(--border-light);
+  }
+
+  .form-title-banner {
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .form-title-banner h1 {
+    font-size: 1.05rem;
+  }
+
+  .form-patient-strip {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 0.75rem;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.8rem;
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .strip-item {
+    min-width: 0;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .strip-value {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  /* Attending Physician spans full width across both columns so it never cuts off! */
+  .strip-item:last-child {
+    grid-column: 1 / -1;
+  }
+
+  /* Responsive Clinical Tables */
+  .form-paper table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Signature Canvas Touch Lock */
+  .sig-canvas {
+    width: 100% !important;
+    height: 140px !important;
+    touch-action: none;
+  }
+
+  .signature-card {
+    padding: 0.85rem;
+  }
+
+  /* Thumb-friendly Form Save/Cancel Buttons */
+  .form-submit-row,
+  .form-paper form > div[style*="justify-content: flex-end"],
+  .form-paper > div[style*="justify-content: flex-end"] {
+    display: flex !important;
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
+    gap: 0.65rem !important;
+    margin-top: 1.25rem !important;
+  }
+
+  .form-submit-row .btn,
+  .form-paper form > div[style*="justify-content: flex-end"] .btn,
+  .form-paper > div[style*="justify-content: flex-end"] .btn {
+    width: 100% !important;
+    min-height: 46px !important;
+    justify-content: center !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+  }
+}

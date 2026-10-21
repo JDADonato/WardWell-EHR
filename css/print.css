@@ -1,0 +1,120 @@
+/* WardWell EHR - Print Stylesheet */
+
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm 15mm 10mm;
+  }
+
+  /* Reset layout and hide chrome */
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    line-height: 1.35 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide app chrome elements */
+  .app-header,
+  .chart-sidebar,
+  .mobile-form-tabs,
+  .mobile-form-nav-container,
+  .form-action-bar,
+  .breadcrumbs,
+  .toast-container,
+  .modal-backdrop,
+  .login-screen,
+  .btn,
+  .no-print {
+    display: none !important;
+  }
+
+  .chart-workspace {
+    display: block !important;
+    min-height: auto !important;
+  }
+
+  .chart-content {
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  .form-paper {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .form-paper:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  /* Show monochrome logo */
+  .color-logo {
+    display: none !important;
+  }
+  .mono-logo {
+    display: block !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /* Avoid awkward page breaks */
+  .form-section,
+  .signature-card,
+  tr,
+  .signature-block,
+  .vitals-chart-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Force borders to black/grayscale for clean print */
+  .data-table th,
+  .data-table td,
+  .form-patient-strip,
+  .view-field {
+    border-color: #333333 !important;
+  }
+
+  .data-table th {
+    background-color: #f0f0f0 !important;
+    color: #000000 !important;
+  }
+
+  /* Convert links to text */
+  a {
+    color: #000000 !important;
+    text-decoration: none !important;
+  }
+
+  /* Force display of view values */
+  .view-value {
+    color: #000000 !important;
+  }
+
+  .form-title-banner {
+    background-color: #eee !important;
+    border-left: 4px solid #333 !important;
+  }
+
+  .form-title-banner h1 {
+    color: #000 !important;
+  }
+}

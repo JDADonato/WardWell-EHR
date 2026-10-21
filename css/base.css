@@ -1,0 +1,169 @@
+/* WardWell EHR - Base Styles & Design Tokens */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* Core Brand Tokens */
+  --blush: #f7d8e2;
+  --cream: #fff6f9;
+  --sage-light: #d7ebd5;
+  --sage: #98c196;
+  --ink: #0f1015;
+  --mist: #f7e7ee;
+
+  /* Derived & Accessible Semantic Tokens (Light Theme) */
+  --sage-dark: #477145;       /* Pastel-harmonized sage for text & bold accents (passes AA) */
+  --sage-darker: #325430;
+  --sage-hover: #88b386;
+  --sage-subtle: rgba(152, 193, 150, 0.18);
+  --blush-subtle: rgba(247, 216, 226, 0.45);
+  --blush-dark: #8c4258;
+
+  /* Semantic UI State Tokens - Light Pastel Pink Surfaces */
+  --bg-app: #fcf0f4;           /* Soft airy light pastel pink page backdrop */
+  --bg-surface: #fff6f9;       /* Luminous light pastel pink surface replacing white */
+  --bg-surface-elevated: #fffafc;
+  --bg-input: #fff8fa;
+  --bg-table-header: #fce4ec;
+  --bg-table-zebra: #fdf4f7;
+  --border-color: #eed5df;
+  --border-light: #f7e6ed;
+  --border-focus: #98c196;
+
+  --text-primary: #0f1015;
+  --text-secondary: #4d535b;
+  --text-muted: #75646c;
+  --text-inverse: #ffffff;
+
+  /* Status Colors (Pastel clinical shades) */
+  --status-admitted-bg: #ecf7ec;
+  --status-admitted-text: #245e28;
+  --status-admitted-border: #bfe3bc;
+  --status-discharged-bg: #f4eaef;
+  --status-discharged-text: #594d54;
+  --status-discharged-border: #e6d3db;
+  --status-fordischarge-bg: #fef7ec;
+  --status-fordischarge-text: #925400;
+  --status-fordischarge-border: #fbd38d;
+  --status-critical-bg: #fde8e8;
+  --status-critical-text: #9b1c1c;
+  --status-critical-border: #f8b4b4;
+
+  /* Shadows & Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  --shadow-xs: 0 1px 2px rgba(15, 16, 21, 0.03);
+  --shadow-sm: 0 1px 3px rgba(15, 16, 21, 0.05), 0 1px 2px rgba(15, 16, 21, 0.03);
+  --shadow-md: 0 4px 14px rgba(15, 16, 21, 0.06), 0 1px 4px rgba(15, 16, 21, 0.02);
+  --shadow-lg: 0 10px 30px rgba(15, 16, 21, 0.08), 0 3px 8px rgba(15, 16, 21, 0.03);
+  --shadow-modal: 0 24px 50px rgba(15, 16, 21, 0.18), 0 6px 16px rgba(15, 16, 21, 0.08);
+
+  /* Typography */
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background-color: var(--bg-app);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+}
+
+/* Typography Scale */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  color: var(--text-primary);
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+h1 { font-size: 1.85rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1.05rem; }
+
+p, span, li, td, th, input, textarea, select, button {
+  font-family: var(--font-sans);
+}
+
+a {
+  color: var(--sage-dark);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+a:hover {
+  text-decoration: underline;
+}
+
+button, input, select, textarea {
+  font-size: 0.9375rem;
+  color: inherit;
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Visible Focus Outline for WCAG AA */
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   MOBILE NATIVE BASELINE (Safe Area & Input Zoom Prevention)
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* Prevent iOS Safari unwanted auto-zoom when tapping inputs */
+  input, select, textarea, .form-control {
+    font-size: 16px !important;
+  }
+
+  /* Smooth native momentum scrolling */
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
+  }
+}
