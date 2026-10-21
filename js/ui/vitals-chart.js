@@ -33,8 +33,9 @@ export function renderVitalsChart(container, vitalsData = []) {
     return d.time || raw || '';
   });
 
-  const temps = sorted.map(d => parseFloat(d.temp)).filter(v => !isNaN(v));
-  const pulses = sorted.map(d => parseFloat(d.pulse || d.hr)).filter(v => !isNaN(v));
+  const temps = sorted.map(d => { const v = parseFloat(d.temp); return isNaN(v) ? null : v; });
+  const pulses = sorted.map(d => { const v = parseFloat(d.pulse || d.hr); return isNaN(v) ? null : v; });
+  const rrs = sorted.map(d => { const v = parseFloat(d.rr); return isNaN(v) ? null : v; });
   const bpHs = sorted.map(d => {
     if (!d.bp) return null;
     const parts = d.bp.split('/');
@@ -55,10 +56,15 @@ export function renderVitalsChart(container, vitalsData = []) {
   const minTemp = 35.0;
   const maxTemp = 40.0;
 
+  // RR Scale (range 10 to 40 bpm)
+  const minRR = 10.0;
+  const maxRR = 40.0;
+
   const count = sorted.length;
   const getX = (i) => padding.left + (count > 1 ? (i / (count - 1)) * chartW : chartW / 2);
   const getYLeft = (val) => padding.top + chartH - ((val - minValLeft) / (maxValLeft - minValLeft)) * chartH;
   const getYTemp = (val) => padding.top + chartH - ((val - minTemp) / (maxTemp - minTemp)) * chartH;
+  const getYRR = (val) => padding.top + chartH - ((val - minRR) / (maxRR - minRR)) * chartH;
 
   // Build gridlines
   let gridHtml = '';
@@ -89,6 +95,7 @@ export function renderVitalsChart(container, vitalsData = []) {
   const bpLowPath = createLinePath(bpLs, getYLeft);
   const pulsePath = createLinePath(pulses, getYLeft);
   const tempPath = createLinePath(temps, getYTemp);
+  const rrPath = createLinePath(rrs, getYRR);
 
   // Dots
   let dotsHtml = '';
@@ -98,6 +105,7 @@ export function renderVitalsChart(container, vitalsData = []) {
     const bpDia = bpLs[i];
     const p = pulses[i];
     const t = temps[i];
+    const r = rrs[i];
 
     if (bpSys && !isNaN(bpSys)) {
       dotsHtml += `<circle cx="${x}" cy="${getYLeft(bpSys)}" r="4" fill="#3f603d" stroke="#fff" stroke-width="1.5"><title>BP Sys: ${bpSys}</title></circle>`;
@@ -110,6 +118,9 @@ export function renderVitalsChart(container, vitalsData = []) {
     }
     if (t && !isNaN(t)) {
       dotsHtml += `<circle cx="${x}" cy="${getYTemp(t)}" r="4" fill="#000000" stroke="#fff" stroke-width="1.5"><title>Temp: ${t} °C</title></circle>`;
+    }
+    if (r && !isNaN(r)) {
+      dotsHtml += `<circle cx="${x}" cy="${getYRR(r)}" r="4" fill="#1976d2" stroke="#fff" stroke-width="1.5"><title>RR: ${r} bpm</title></circle>`;
     }
 
     // X Axis Label
@@ -128,6 +139,7 @@ export function renderVitalsChart(container, vitalsData = []) {
       <path d="${bpLowPath}" fill="none" stroke="#60805e" stroke-width="2" stroke-dasharray="4,2" class="chart-line" />
       <path d="${pulsePath}" fill="none" stroke="#d32f2f" stroke-width="2.5" class="chart-line" />
       <path d="${tempPath}" fill="none" stroke="#000000" stroke-width="2.5" class="chart-line" />
+      <path d="${rrPath}" fill="none" stroke="#1976d2" stroke-width="2.5" class="chart-line" />
 
       <!-- Data Dots -->
       ${dotsHtml}

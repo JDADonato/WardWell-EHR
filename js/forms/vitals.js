@@ -82,6 +82,7 @@ export const VitalsForm = {
             <span class="legend-item"><span class="legend-dot" style="background-color: #60805e;"></span> BP Diastolic</span>
             <span class="legend-item"><span class="legend-dot" style="background-color: #d32f2f;"></span> Pulse (bpm)</span>
             <span class="legend-item"><span class="legend-dot" style="background-color: #000000;"></span> Temp (°C)</span>
+            <span class="legend-item"><span class="legend-dot" style="background-color: #1976d2;"></span> RR (bpm)</span>
           </div>
         </div>
         <div id="vitals-chart-stage" class="chart-svg-container"></div>
