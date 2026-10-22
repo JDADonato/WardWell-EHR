@@ -1,5 +1,5 @@
 // Form 2: Nursing Assessment Form
-import { renderFormStandardHeader } from './common.js';
+import { renderFormStandardHeader, renderImmutableNotice } from './common.js';
 import { formatDate } from '../utils/dates.js';
 
 export const NursingAssessmentForm = {
@@ -156,6 +156,8 @@ export const NursingAssessmentForm = {
 
     container.innerHTML = `
       ${renderFormStandardHeader(patient, 'Nursing Assessment Form (Edit Mode)', 'WW-NUR-02')}
+
+      ${renderImmutableNotice("Nursing Assessment", "Previously recorded nursing physical assessments and surveys cannot be altered. Empty fields can still be completed.")}
 
       <form id="nursing-assessment-form">
         <!-- 1. Social History -->
@@ -317,31 +319,41 @@ export const NursingAssessmentForm = {
       </form>
     `;
 
+    // Lock previously populated fields to preserve medical record immutability
+    container.querySelectorAll('input, select, textarea').forEach(el => {
+      const val = el.value?.trim();
+      if (val && val !== '') {
+        el.setAttribute('disabled', 'true');
+        el.setAttribute('title', 'Permanent record: Previously recorded assessment cannot be altered.');
+        el.classList.add('field-locked');
+      }
+    });
+
     container.querySelector('#nursing-assessment-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const updated = {
-        smokingStatus: container.querySelector('#na-smoking').value,
-        alcoholUse: container.querySelector('#na-alcohol').value.trim(),
-        substanceUse: container.querySelector('#na-substance').value.trim(),
-        livingArrangements: container.querySelector('#na-living').value.trim(),
-        consciousState: container.querySelector('#na-conscious').value,
-        mobility: container.querySelector('#na-mobility').value,
-        nutritionalStatus: container.querySelector('#na-nutritional').value,
-        hygiene: container.querySelector('#na-hygiene').value,
-        gcs: container.querySelector('#na-gcs').value.trim(),
-        cardiovascular: container.querySelector('#na-cardio').value.trim(),
-        respiratory: container.querySelector('#na-resp').value.trim(),
-        gastrointestinal: container.querySelector('#na-gi').value.trim(),
-        heent: container.querySelector('#na-heent').value.trim(),
-        genitourinary: container.querySelector('#na-gu').value.trim(),
-        integumentary: container.querySelector('#na-integ').value.trim(),
-        painLocation: container.querySelector('#na-painLoc').value.trim(),
-        painScale: container.querySelector('#na-painScale').value,
-        painCharacter: container.querySelector('#na-painChar').value.trim(),
-        fallRisk: container.querySelector('#na-fallRisk').value,
-        pressureRisk: container.querySelector('#na-pressureRisk').value,
-        nurseSummary: container.querySelector('#na-summary').value.trim(),
-        nurseSignature: container.querySelector('#na-signature').value.trim()
+        smokingStatus: container.querySelector('#na-smoking')?.value || na.smokingStatus,
+        alcoholUse: (container.querySelector('#na-alcohol')?.value || na.alcoholUse || '').trim(),
+        substanceUse: (container.querySelector('#na-substance')?.value || na.substanceUse || '').trim(),
+        livingArrangements: (container.querySelector('#na-living')?.value || na.livingArrangements || '').trim(),
+        consciousState: container.querySelector('#na-conscious')?.value || na.consciousState,
+        mobility: container.querySelector('#na-mobility')?.value || na.mobility,
+        nutritionalStatus: container.querySelector('#na-nutritional')?.value || na.nutritionalStatus,
+        hygiene: container.querySelector('#na-hygiene')?.value || na.hygiene,
+        gcs: (container.querySelector('#na-gcs')?.value || na.gcs || '').trim(),
+        cardiovascular: (container.querySelector('#na-cardio')?.value || na.cardiovascular || '').trim(),
+        respiratory: (container.querySelector('#na-resp')?.value || na.respiratory || '').trim(),
+        gastrointestinal: (container.querySelector('#na-gi')?.value || na.gastrointestinal || '').trim(),
+        heent: (container.querySelector('#na-heent')?.value || na.heent || '').trim(),
+        genitourinary: (container.querySelector('#na-gu')?.value || na.genitourinary || '').trim(),
+        integumentary: (container.querySelector('#na-integ')?.value || na.integumentary || '').trim(),
+        painLocation: (container.querySelector('#na-painLoc')?.value || na.painLocation || '').trim(),
+        painScale: container.querySelector('#na-painScale')?.value || na.painScale,
+        painCharacter: (container.querySelector('#na-painChar')?.value || na.painCharacter || '').trim(),
+        fallRisk: container.querySelector('#na-fallRisk')?.value || na.fallRisk,
+        pressureRisk: container.querySelector('#na-pressureRisk')?.value || na.pressureRisk,
+        nurseSummary: (container.querySelector('#na-summary')?.value || na.nurseSummary || '').trim(),
+        nurseSignature: (container.querySelector('#na-signature')?.value || na.nurseSignature || '').trim()
       };
       onSave(updated);
     });

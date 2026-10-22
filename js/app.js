@@ -11,6 +11,7 @@ import { Toast } from './ui/toast.js';
 import { Modal } from './ui/modal.js';
 import { showConfirm } from './ui/confirm.js';
 import { ThemeManager } from './ui/theme.js';
+import { renderImmutableNotice } from './forms/common.js';
 
 // Import All 11 Forms
 import { AdmissionForm } from './forms/admission.js';
@@ -1337,6 +1338,7 @@ function openEditPatientDemographicsModal(patientId) {
 
   const modalContent = document.createElement('div');
   modalContent.innerHTML = `
+    ${renderImmutableNotice("Patient Demographic Record", "Previously recorded legal demographics cannot be altered. Empty fields can be completed, and Attending Physician and Patient Status can be updated.")}
     <form id="edit-patient-demographics-form">
       <div class="grid-3">
         <div class="form-group">
@@ -1378,7 +1380,7 @@ function openEditPatientDemographicsModal(patientId) {
           <input type="text" id="ep-room" class="form-control" value="${patient.roomBed || ''}" required />
         </div>
         <div class="form-group">
-          <label class="form-label" for="ep-doc">Attending Physician</label>
+          <label class="form-label" for="ep-doc">Attending Physician (Editable)</label>
           <input type="text" id="ep-doc" class="form-control" value="${patient.attendingPhysician || ''}" required />
         </div>
 
@@ -1395,8 +1397,19 @@ function openEditPatientDemographicsModal(patientId) {
     </form>
   `;
 
+  // Lock previously recorded fields, while keeping Attending Physician and Status editable
+  modalContent.querySelectorAll('input, select').forEach(el => {
+    if (el.id === 'ep-doc' || el.id === 'ep-status') return; // Physician and status can be updated
+    const val = el.value?.trim();
+    if (val && val !== '') {
+      el.setAttribute('disabled', 'true');
+      el.setAttribute('title', 'Permanent record: Previously recorded demographic data cannot be altered.');
+      el.classList.add('field-locked');
+    }
+  });
+
   const modal = Modal.create({
-    title: `Edit Details: ${patient.firstName} ${patient.lastName}`,
+    title: `Patient Demographics: ${patient.firstName} ${patient.lastName}`,
     content: modalContent,
     size: 'lg',
     footerButtons: [
@@ -1411,16 +1424,16 @@ function openEditPatientDemographicsModal(patientId) {
         onClick: ({ close }) => {
           Store.savePatient({
             id: patient.id,
-            lastName: modalContent.querySelector('#ep-last').value.trim(),
-            firstName: modalContent.querySelector('#ep-first').value.trim(),
-            middleName: modalContent.querySelector('#ep-mid').value.trim(),
-            dob: modalContent.querySelector('#ep-dob').value,
-            sex: modalContent.querySelector('#ep-sex').value,
-            status: modalContent.querySelector('#ep-status').value,
-            roomBed: modalContent.querySelector('#ep-room').value.trim(),
-            attendingPhysician: modalContent.querySelector('#ep-doc').value.trim(),
-            admittingDiagnosis: modalContent.querySelector('#ep-diag').value.trim(),
-            allergies: modalContent.querySelector('#ep-allergies').value.trim()
+            lastName: (modalContent.querySelector('#ep-last')?.value || patient.lastName || '').trim(),
+            firstName: (modalContent.querySelector('#ep-first')?.value || patient.firstName || '').trim(),
+            middleName: (modalContent.querySelector('#ep-mid')?.value || patient.middleName || '').trim(),
+            dob: modalContent.querySelector('#ep-dob')?.value || patient.dob,
+            sex: modalContent.querySelector('#ep-sex')?.value || patient.sex,
+            status: modalContent.querySelector('#ep-status')?.value || patient.status,
+            roomBed: (modalContent.querySelector('#ep-room')?.value || patient.roomBed || '').trim(),
+            attendingPhysician: (modalContent.querySelector('#ep-doc')?.value || patient.attendingPhysician || '').trim(),
+            admittingDiagnosis: (modalContent.querySelector('#ep-diag')?.value || patient.admittingDiagnosis || '').trim(),
+            allergies: (modalContent.querySelector('#ep-allergies')?.value || patient.allergies || '').trim()
           });
 
           close();

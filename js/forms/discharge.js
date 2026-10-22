@@ -1,5 +1,5 @@
 // Form 11: Discharge Planning Form
-import { renderFormStandardHeader } from './common.js';
+import { renderFormStandardHeader, renderImmutableNotice } from './common.js';
 import { formatDate, getCurrentISODate } from '../utils/dates.js';
 
 export const DischargeForm = {
@@ -141,6 +141,8 @@ export const DischargeForm = {
     container.innerHTML = `
       ${renderFormStandardHeader(patient, 'Discharge Planning Form (Edit Mode)', 'WW-DIS-11')}
 
+      ${renderImmutableNotice("Discharge Planning Record", "Previously entered discharge planning entries are permanent clinical records and cannot be altered. Empty fields can still be completed.")}
+
       <form id="discharge-form">
         <!-- 1. Dates & Destination -->
         <section class="form-section">
@@ -263,28 +265,38 @@ export const DischargeForm = {
       </form>
     `;
 
+    // Lock previously populated fields to preserve medical record immutability
+    container.querySelectorAll('input, select, textarea').forEach(el => {
+      const val = el.type === 'checkbox' ? el.checked : el.value?.trim();
+      if (val && val !== '') {
+        el.setAttribute('disabled', 'true');
+        el.setAttribute('title', 'Permanent record: Previously recorded discharge planning cannot be altered.');
+        el.classList.add('field-locked');
+      }
+    });
+
     container.querySelector('#discharge-form').addEventListener('submit', (e) => {
       e.preventDefault();
 
       const checkedNeeds = Array.from(container.querySelectorAll('input[name="dis-needs"]:checked')).map(el => el.value);
 
       const updated = {
-        anticipatedDate: container.querySelector('#dis-anticDate').value,
-        confirmedDate: container.querySelector('#dis-confDate').value,
-        destination: container.querySelector('#dis-dest').value,
-        dischargeStatus: container.querySelector('#dis-status').value,
-        personNotified: container.querySelector('#dis-notified').value.trim(),
-        specialNeedsList: checkedNeeds,
-        specialNeedsNotes: container.querySelector('#dis-needsNotes').value.trim(),
-        dietPrescribed: container.querySelector('#dis-diet').value.trim(),
-        dietarySupplements: container.querySelector('#dis-supp').value.trim(),
-        dietDiscussedWith: container.querySelector('#dis-dietDisc').value,
-        takeHomeMeds: container.querySelector('#dis-meds').value.trim(),
-        woundCare: container.querySelector('#dis-wound').value.trim(),
-        warningSigns: container.querySelector('#dis-warning').value.trim(),
-        followUpDate: container.querySelector('#dis-fu').value.trim(),
-        nurseAdmission: container.querySelector('#dis-nurseAdm').value.trim(),
-        nurseDischarge: container.querySelector('#dis-nurseDis').value.trim()
+        anticipatedDate: container.querySelector('#dis-anticDate')?.value || d.anticipatedDate,
+        confirmedDate: container.querySelector('#dis-confDate')?.value || d.confirmedDate,
+        destination: container.querySelector('#dis-dest')?.value || d.destination,
+        dischargeStatus: container.querySelector('#dis-status')?.value || d.dischargeStatus,
+        personNotified: (container.querySelector('#dis-notified')?.value || d.personNotified || '').trim(),
+        specialNeedsList: checkedNeeds.length > 0 ? checkedNeeds : (d.specialNeedsList || []),
+        specialNeedsNotes: (container.querySelector('#dis-needsNotes')?.value || d.specialNeedsNotes || '').trim(),
+        dietPrescribed: (container.querySelector('#dis-diet')?.value || d.dietPrescribed || '').trim(),
+        dietarySupplements: (container.querySelector('#dis-supp')?.value || d.dietarySupplements || '').trim(),
+        dietDiscussedWith: container.querySelector('#dis-dietDisc')?.value || d.dietDiscussedWith,
+        takeHomeMeds: (container.querySelector('#dis-meds')?.value || d.takeHomeMeds || '').trim(),
+        woundCare: (container.querySelector('#dis-wound')?.value || d.woundCare || '').trim(),
+        warningSigns: (container.querySelector('#dis-warning')?.value || d.warningSigns || '').trim(),
+        followUpDate: (container.querySelector('#dis-fu')?.value || d.followUpDate || '').trim(),
+        nurseAdmission: (container.querySelector('#dis-nurseAdm')?.value || d.nurseAdmission || '').trim(),
+        nurseDischarge: (container.querySelector('#dis-nurseDis')?.value || d.nurseDischarge || '').trim()
       };
 
       onSave(updated);

@@ -1,5 +1,5 @@
 // Form 6: IV Flow Record
-import { renderFormStandardHeader } from './common.js';
+import { renderFormStandardHeader, renderImmutableNotice } from './common.js';
 import { formatDate, getCurrentISODateTime } from '../utils/dates.js';
 import { generateId } from '../utils/id.js';
 import { showConfirm } from '../ui/confirm.js';
@@ -78,6 +78,7 @@ export const IvFlowForm = {
 
   renderEdit(patient, onSave, onCancel) {
     let ivs = Array.isArray(patient.forms?.ivFlow) ? JSON.parse(JSON.stringify(patient.forms.ivFlow)) : [];
+    const initialIvsCount = ivs.length;
 
     const container = document.createElement('div');
     container.className = 'form-paper';
@@ -97,52 +98,65 @@ export const IvFlowForm = {
         return;
       }
 
-      tbody.innerHTML = ivs.map((iv, idx) => `
-        <tr>
-          <td>
-            <input type="datetime-local" class="form-control form-control-sm dt-val" data-idx="${idx}" value="${iv.dateTimeStarted ? iv.dateTimeStarted.substring(0, 16) : ''}" style="min-width: 145px;" />
-            <select class="form-control form-control-sm shift-val" data-idx="${idx}" style="margin-top: 4px;">
-              <option value="7-3" ${iv.shift === '7-3' ? 'selected' : ''}>7-3</option>
-              <option value="3-11" ${iv.shift === '3-11' ? 'selected' : ''}>3-11</option>
-              <option value="11-7" ${iv.shift === '11-7' ? 'selected' : ''}>11-7</option>
-            </select>
-          </td>
-          <td><input type="text" class="form-control form-control-sm bot-val" data-idx="${idx}" value="${iv.botNo || ''}" placeholder="IVF #1" style="width: 75px;" /></td>
-          <td>
-            <input type="text" class="form-control form-control-sm sol-val" data-idx="${idx}" value="${iv.solution || ''}" placeholder="PLR 1000mL" style="min-width: 120px;" />
-            <select class="form-control form-control-sm stat-val" data-idx="${idx}" style="margin-top: 4px;">
-              <option value="Infusing" ${iv.status === 'Infusing' ? 'selected' : ''}>Infusing</option>
-              <option value="Completed" ${iv.status === 'Completed' ? 'selected' : ''}>Completed</option>
-              <option value="Discontinued" ${iv.status === 'Discontinued' ? 'selected' : ''}>Discontinued</option>
-            </select>
-          </td>
-          <td><input type="text" class="form-control form-control-sm rate-val" data-idx="${idx}" value="${iv.rate || '30 gtts/min'}" style="width: 90px;" /></td>
-          <td><input type="text" class="form-control form-control-sm site-val" data-idx="${idx}" value="${iv.site || 'LH (Gauge 20)'}" style="width: 110px;" /></td>
-          <td><input type="number" class="form-control form-control-sm rec-val" data-idx="${idx}" value="${iv.receivedAmount || '1000'}" style="width: 75px;" /></td>
-          <td><input type="number" class="form-control form-control-sm inf-val" data-idx="${idx}" value="${iv.infusedAmount || '0'}" style="width: 75px;" /></td>
-          <td><input type="datetime-local" class="form-control form-control-sm con-val" data-idx="${idx}" value="${iv.consumedTime ? iv.consumedTime.substring(0, 16) : ''}" style="min-width: 145px;" /></td>
-          <td><input type="text" class="form-control form-control-sm rem-val" data-idx="${idx}" value="${iv.remarks || ''}" placeholder="Remarks" style="min-width: 110px;" /></td>
-          <td><input type="text" class="form-control form-control-sm nod-val" data-idx="${idx}" value="${iv.nodSignature || 'Nurse, RN'}" style="min-width: 100px;" /></td>
-          <td style="text-align: center;">
-            <button type="button" class="btn btn-icon btn-sm btn-danger del-iv-btn" data-idx="${idx}">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = ivs.map((iv, idx) => {
+        const isLocked = idx < initialIvsCount;
+        const lockAttr = isLocked ? 'disabled' : '';
+        const lockRowClass = isLocked ? 'locked-record-row' : '';
 
-      tbody.querySelectorAll('.dt-val').forEach(el => el.addEventListener('change', e => { ivs[parseInt(e.target.dataset.idx, 10)].dateTimeStarted = e.target.value; }));
-      tbody.querySelectorAll('.shift-val').forEach(el => el.addEventListener('change', e => { ivs[parseInt(e.target.dataset.idx, 10)].shift = e.target.value; }));
-      tbody.querySelectorAll('.bot-val').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].botNo = e.target.value; }));
-      tbody.querySelectorAll('.sol-val').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].solution = e.target.value; }));
-      tbody.querySelectorAll('.stat-val').forEach(el => el.addEventListener('change', e => { ivs[parseInt(e.target.dataset.idx, 10)].status = e.target.value; }));
-      tbody.querySelectorAll('.rate-val').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].rate = e.target.value; }));
-      tbody.querySelectorAll('.site-val').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].site = e.target.value; }));
-      tbody.querySelectorAll('.rec-val').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].receivedAmount = e.target.value; }));
-      tbody.querySelectorAll('.inf-val').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].infusedAmount = e.target.value; }));
-      tbody.querySelectorAll('.con-val').forEach(el => el.addEventListener('change', e => { ivs[parseInt(e.target.dataset.idx, 10)].consumedTime = e.target.value; }));
-      tbody.querySelectorAll('.rem-val').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].remarks = e.target.value; }));
-      tbody.querySelectorAll('.nod-val').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].nodSignature = e.target.value; }));
+        return `
+          <tr class="${lockRowClass}">
+            <td>
+              <input type="datetime-local" class="form-control form-control-sm dt-val" data-idx="${idx}" value="${iv.dateTimeStarted ? iv.dateTimeStarted.substring(0, 16) : ''}" style="min-width: 145px;" ${lockAttr} />
+              <select class="form-control form-control-sm shift-val" data-idx="${idx}" style="margin-top: 4px;" ${lockAttr}>
+                <option value="7-3" ${iv.shift === '7-3' ? 'selected' : ''}>7-3</option>
+                <option value="3-11" ${iv.shift === '3-11' ? 'selected' : ''}>3-11</option>
+                <option value="11-7" ${iv.shift === '11-7' ? 'selected' : ''}>11-7</option>
+              </select>
+            </td>
+            <td><input type="text" class="form-control form-control-sm bot-val" data-idx="${idx}" value="${iv.botNo || ''}" placeholder="IVF #1" style="width: 75px;" ${lockAttr} /></td>
+            <td>
+              <input type="text" class="form-control form-control-sm sol-val" data-idx="${idx}" value="${iv.solution || ''}" placeholder="PLR 1000mL" style="min-width: 120px;" ${lockAttr} />
+              <select class="form-control form-control-sm stat-val" data-idx="${idx}" style="margin-top: 4px;" ${lockAttr}>
+                <option value="Infusing" ${iv.status === 'Infusing' ? 'selected' : ''}>Infusing</option>
+                <option value="Completed" ${iv.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                <option value="Discontinued" ${iv.status === 'Discontinued' ? 'selected' : ''}>Discontinued</option>
+              </select>
+            </td>
+            <td><input type="text" class="form-control form-control-sm rate-val" data-idx="${idx}" value="${iv.rate || '30 gtts/min'}" style="width: 90px;" ${lockAttr} /></td>
+            <td><input type="text" class="form-control form-control-sm site-val" data-idx="${idx}" value="${iv.site || 'LH (Gauge 20)'}" style="width: 110px;" ${lockAttr} /></td>
+            <td><input type="number" class="form-control form-control-sm rec-val" data-idx="${idx}" value="${iv.receivedAmount || '1000'}" style="width: 75px;" ${lockAttr} /></td>
+            <td><input type="number" class="form-control form-control-sm inf-val" data-idx="${idx}" value="${iv.infusedAmount || '0'}" style="width: 75px;" ${lockAttr} /></td>
+            <td><input type="datetime-local" class="form-control form-control-sm con-val" data-idx="${idx}" value="${iv.consumedTime ? iv.consumedTime.substring(0, 16) : ''}" style="min-width: 145px;" ${lockAttr} /></td>
+            <td><input type="text" class="form-control form-control-sm rem-val" data-idx="${idx}" value="${iv.remarks || ''}" placeholder="Remarks" style="min-width: 110px;" ${lockAttr} /></td>
+            <td><input type="text" class="form-control form-control-sm nod-val" data-idx="${idx}" value="${iv.nodSignature || 'Nurse, RN'}" style="min-width: 100px;" ${lockAttr} /></td>
+            <td style="text-align: center;">
+              ${isLocked ? `
+                <span class="locked-badge-pill" title="Locked clinical record (Permanent medical entry)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  Locked
+                </span>
+              ` : `
+                <button type="button" class="btn btn-icon btn-sm btn-danger del-iv-btn" data-idx="${idx}" title="Delete Row">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('.dt-val:not([disabled])').forEach(el => el.addEventListener('change', e => { ivs[parseInt(e.target.dataset.idx, 10)].dateTimeStarted = e.target.value; }));
+      tbody.querySelectorAll('.shift-val:not([disabled])').forEach(el => el.addEventListener('change', e => { ivs[parseInt(e.target.dataset.idx, 10)].shift = e.target.value; }));
+      tbody.querySelectorAll('.bot-val:not([disabled])').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].botNo = e.target.value; }));
+      tbody.querySelectorAll('.sol-val:not([disabled])').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].solution = e.target.value; }));
+      tbody.querySelectorAll('.stat-val:not([disabled])').forEach(el => el.addEventListener('change', e => { ivs[parseInt(e.target.dataset.idx, 10)].status = e.target.value; }));
+      tbody.querySelectorAll('.rate-val:not([disabled])').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].rate = e.target.value; }));
+      tbody.querySelectorAll('.site-val:not([disabled])').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].site = e.target.value; }));
+      tbody.querySelectorAll('.rec-val:not([disabled])').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].receivedAmount = e.target.value; }));
+      tbody.querySelectorAll('.inf-val:not([disabled])').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].infusedAmount = e.target.value; }));
+      tbody.querySelectorAll('.con-val:not([disabled])').forEach(el => el.addEventListener('change', e => { ivs[parseInt(e.target.dataset.idx, 10)].consumedTime = e.target.value; }));
+      tbody.querySelectorAll('.rem-val:not([disabled])').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].remarks = e.target.value; }));
+      tbody.querySelectorAll('.nod-val:not([disabled])').forEach(el => el.addEventListener('input', e => { ivs[parseInt(e.target.dataset.idx, 10)].nodSignature = e.target.value; }));
 
       tbody.querySelectorAll('.del-iv-btn').forEach(btn => btn.addEventListener('click', async () => {
         const idx = parseInt(btn.dataset.idx, 10);
@@ -160,6 +174,8 @@ export const IvFlowForm = {
 
     container.innerHTML = `
       ${renderFormStandardHeader(patient, 'Intravenous Fluid Flow Record (Edit Mode)', 'WW-IVF-06')}
+
+      ${renderImmutableNotice("IV Flow Record", "Previous IV infusions and balance records are permanent entries and cannot be altered or removed. New fluid records can be added below.")}
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <div style="font-size: 0.84rem; color: var(--text-secondary);">
@@ -184,7 +200,7 @@ export const IvFlowForm = {
               <th>Consumed</th>
               <th>Remarks</th>
               <th>NOD Sig</th>
-              <th>Act</th>
+              <th style="text-align: center; width: 75px;">Status</th>
             </tr>
           </thead>
           <tbody id="iv-tbody"></tbody>

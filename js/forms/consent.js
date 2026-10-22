@@ -1,5 +1,5 @@
 // Form 3: Informed Consent Form
-import { renderFormStandardHeader } from './common.js';
+import { renderFormStandardHeader, renderImmutableNotice } from './common.js';
 import { formatDate, getCurrentISODateTime } from '../utils/dates.js';
 import { SignaturePad } from '../ui/signature-pad.js';
 
@@ -135,6 +135,8 @@ export const ConsentForm = {
     container.innerHTML = `
       ${renderFormStandardHeader(patient, 'Informed Consent Form (Edit Mode)', 'WW-CNS-03')}
 
+      ${renderImmutableNotice("Informed Consent Record", "Previously executed informed consent details are legally binding and cannot be altered. Provider name can still be updated.")}
+
       <form id="consent-form">
         <!-- Step 1: Procedure Details -->
         <section class="form-section">
@@ -246,6 +248,17 @@ export const ConsentForm = {
       </form>
     `;
 
+    // Lock previously populated fields to preserve medical record immutability
+    container.querySelectorAll('input, select, textarea').forEach(el => {
+      if (el.id === 'c-providerName') return; // Medical provider / doctor name can always be updated
+      const val = el.type === 'checkbox' ? el.checked : el.value?.trim();
+      if (val && val !== '') {
+        el.setAttribute('disabled', 'true');
+        el.setAttribute('title', 'Permanent record: Previously recorded consent entry cannot be altered.');
+        el.classList.add('field-locked');
+      }
+    });
+
     // Instantiate signature pads after attached to DOM
     let patientPad = null;
     let providerPad = null;
@@ -273,20 +286,20 @@ export const ConsentForm = {
       const docSigUrl = providerPad?.toDataURL() || c.providerSignature || '';
 
       const updated = {
-        procedureName: container.querySelector('#c-procName').value.trim(),
-        procedureDescription: container.querySelector('#c-procDesc').value.trim(),
-        procedureDateTime: container.querySelector('#c-procDate').value,
-        procedureLocation: container.querySelector('#c-procLoc').value.trim(),
-        providerName: container.querySelector('#c-providerName').value.trim(),
-        providerLicense: container.querySelector('#c-providerLicense').value.trim(),
-        emergencyContactName: container.querySelector('#c-ecName').value.trim(),
-        emergencyContactRel: container.querySelector('#c-ecRel').value.trim(),
-        emergencyContactPhone: container.querySelector('#c-ecPhone').value.trim(),
-        patientAcknowledged: container.querySelector('#c-ack').checked,
-        witnessName: container.querySelector('#c-witnessName').value.trim(),
+        procedureName: (container.querySelector('#c-procName')?.value || c.procedureName || '').trim(),
+        procedureDescription: (container.querySelector('#c-procDesc')?.value || c.procedureDescription || '').trim(),
+        procedureDateTime: container.querySelector('#c-procDate')?.value || c.procedureDateTime,
+        procedureLocation: (container.querySelector('#c-procLoc')?.value || c.procedureLocation || '').trim(),
+        providerName: (container.querySelector('#c-providerName')?.value || c.providerName || patient.attendingPhysician || '').trim(),
+        providerLicense: (container.querySelector('#c-providerLicense')?.value || c.providerLicense || '').trim(),
+        emergencyContactName: (container.querySelector('#c-ecName')?.value || c.emergencyContactName || '').trim(),
+        emergencyContactRel: (container.querySelector('#c-ecRel')?.value || c.emergencyContactRel || '').trim(),
+        emergencyContactPhone: (container.querySelector('#c-ecPhone')?.value || c.emergencyContactPhone || '').trim(),
+        patientAcknowledged: container.querySelector('#c-ack') ? container.querySelector('#c-ack').checked : !!c.patientAcknowledged,
+        witnessName: (container.querySelector('#c-witnessName')?.value || c.witnessName || '').trim(),
         patientSignature: pSigUrl,
         providerSignature: docSigUrl,
-        signedDate: getCurrentISODateTime()
+        signedDate: c.signedDate || getCurrentISODateTime()
       };
 
       onSave(updated);

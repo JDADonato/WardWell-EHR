@@ -256,6 +256,49 @@ async function runTest() {
       throw new Error(`Doctor name did not update correctly! Got Strip: "${updatedStripDoc}", Banner: "${updatedBannerDoc}"`);
     }
 
+    // 6d. Verifying Legal Immutability (previously written information locked, only additions allowed, doctor name editable)
+    console.log('6d. Verifying Legal Immutability & Doctor Name Exception...');
+    // A. Check Doctor's Orders edit mode
+    await evaluate('document.getElementById("btn-toggle-edit-mode").click()');
+    await delay(300);
+    const existingOrdersLocked = await evaluate('document.querySelectorAll("#orders-tbody tr.locked-record-row").length > 0');
+    const existingOrderInputsDisabled = await evaluate('document.querySelectorAll("#orders-tbody tr.locked-record-row input[disabled]").length > 0');
+    const lockedOrderBadgeExists = await evaluate('document.querySelectorAll("#orders-tbody .locked-badge-pill").length > 0');
+    const docNameInputEnabled = await evaluate('!document.getElementById("edit-order-physician").hasAttribute("disabled")');
+    console.log(`   Doctor's Orders: Existing Rows Locked: ${existingOrdersLocked} | Inputs Disabled: ${existingOrderInputsDisabled} | Badges: ${lockedOrderBadgeExists} | Doc Name Editable: ${docNameInputEnabled}`);
+    if (!existingOrdersLocked || !existingOrderInputsDisabled || !lockedOrderBadgeExists || !docNameInputEnabled) {
+      throw new Error('Doctor\'s Orders did not properly lock existing entries or keep doctor name editable!');
+    }
+
+    // Append a new doctor order and check it is editable
+    await evaluate('document.getElementById("btn-add-order-row").click()');
+    await delay(200);
+    const newOrderRowEditable = await evaluate('document.querySelectorAll("#orders-tbody tr:not(.locked-record-row) input:not([disabled])").length > 0');
+    const newOrderDeleteBtnExists = await evaluate('document.querySelectorAll("#orders-tbody tr:not(.locked-record-row) .del-btn").length > 0');
+    console.log(`   New Order Row Editable: ${newOrderRowEditable} | Has Delete Button: ${newOrderDeleteBtnExists}`);
+    if (!newOrderRowEditable || !newOrderDeleteBtnExists) {
+      throw new Error('Newly appended Doctor\'s Order row was not editable or lacked delete button!');
+    }
+
+    // Cancel edit
+    await evaluate('document.getElementById("btn-cancel-orders").click()');
+    await delay(300);
+
+    // B. Check Admission form edit mode
+    await evaluate('window.location.hash = "#/patients/pt_delacruz01/admission"');
+    await delay(300);
+    await evaluate('document.getElementById("btn-toggle-edit-mode").click()');
+    await delay(300);
+    const admLastNameLocked = await evaluate('document.getElementById("adm-lastName").hasAttribute("disabled")');
+    const admDobLocked = await evaluate('document.getElementById("adm-dob").hasAttribute("disabled")');
+    const admPhysicianEnabled = await evaluate('!document.getElementById("adm-attendingPhysician").hasAttribute("disabled")');
+    console.log(`   Admission Form: Last Name Locked: ${admLastNameLocked} | DOB Locked: ${admDobLocked} | Attending Physician Editable: ${admPhysicianEnabled}`);
+    if (!admLastNameLocked || !admDobLocked || !admPhysicianEnabled) {
+      throw new Error('Admission form did not lock existing demographic info or Attending Physician was disabled!');
+    }
+    await evaluate('document.getElementById("btn-cancel-edit").click()');
+    await delay(300);
+
     // Test Edit Mode Toggle and Action Bar immediate reactivity
     console.log('7. Testing View -> Edit Mode Toggle on Vitals Form and Action Bar Reactivity...');
     await evaluate('window.location.hash = "#/patients/pt_delacruz01/vitals"');

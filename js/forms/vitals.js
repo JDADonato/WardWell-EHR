@@ -1,5 +1,5 @@
 // Form 5: Vital Signs Monitoring
-import { renderFormStandardHeader } from './common.js';
+import { renderFormStandardHeader, renderImmutableNotice } from './common.js';
 import { formatDate, getCurrentISODateTime, getCurrentISODate, getCurrentISOTime } from '../utils/dates.js';
 import { generateId } from '../utils/id.js';
 import { isAbnormalVital, isAbnormalBP } from '../utils/validate.js';
@@ -121,6 +121,7 @@ export const VitalsForm = {
 
   renderEdit(patient, onSave, onCancel) {
     let vitals = Array.isArray(patient.forms?.vitals) ? JSON.parse(JSON.stringify(patient.forms.vitals)) : [];
+    const initialVitalsCount = vitals.length;
 
     const container = document.createElement('div');
     container.className = 'form-paper';
@@ -132,7 +133,7 @@ export const VitalsForm = {
       if (vitals.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="12" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            <td colspan="13" style="text-align: center; padding: 2rem; color: var(--text-muted);">
               No vital rows recorded. Click "+ Add Vitals Entry" below.
             </td>
           </tr>
@@ -140,57 +141,70 @@ export const VitalsForm = {
         return;
       }
 
-      tbody.innerHTML = vitals.map((v, idx) => `
-        <tr>
-          <td>
-            <input type="datetime-local" class="form-control form-control-sm dt-val" data-idx="${idx}" value="${v.dateTime ? v.dateTime.substring(0, 16) : ''}" style="min-width: 150px;" />
-            <select class="form-control form-control-sm shift-val" data-idx="${idx}" style="margin-top: 4px;">
-              <option value="7-3" ${v.shift === '7-3' ? 'selected' : ''}>7-3</option>
-              <option value="3-11" ${v.shift === '3-11' ? 'selected' : ''}>3-11</option>
-              <option value="11-7" ${v.shift === '11-7' ? 'selected' : ''}>11-7</option>
-            </select>
-          </td>
-          <td><input type="text" class="form-control form-control-sm bp-val" data-idx="${idx}" value="${v.bp || ''}" placeholder="120/80" style="width: 75px;" /></td>
-          <td><input type="number" class="form-control form-control-sm hr-val" data-idx="${idx}" value="${v.pulse || v.hr || ''}" placeholder="80" style="width: 65px;" /></td>
-          <td><input type="number" class="form-control form-control-sm rr-val" data-idx="${idx}" value="${v.rr || ''}" placeholder="18" style="width: 60px;" /></td>
-          <td><input type="number" step="0.1" class="form-control form-control-sm temp-val" data-idx="${idx}" value="${v.temp || ''}" placeholder="36.5" style="width: 70px;" /></td>
-          <td><input type="number" class="form-control form-control-sm spo2-val" data-idx="${idx}" value="${v.spo2 || ''}" placeholder="98" style="width: 65px;" /></td>
-          <td>
-            <select class="form-control form-control-sm cough-val" data-idx="${idx}" style="width: 75px;">
-              <option value="w/o" ${v.cough === 'w/o' ? 'selected' : ''}>w/o</option>
-              <option value="w" ${v.cough === 'w' ? 'selected' : ''}>w/</option>
-            </select>
-          </td>
-          <td><input type="number" min="0" max="10" class="form-control form-control-sm pain-val" data-idx="${idx}" value="${v.pain || '0'}" style="width: 55px;" /></td>
-          <td><input type="number" class="form-control form-control-sm intake-val" data-idx="${idx}" value="${v.intake || ''}" placeholder="cc" style="width: 70px;" /></td>
-          <td>
-            <input type="text" class="form-control form-control-sm urine-val" data-idx="${idx}" value="${v.urine || ''}" placeholder="Urine cc" style="width: 75px;" />
-            <input type="text" class="form-control form-control-sm stool-val" data-idx="${idx}" value="${v.stool || ''}" placeholder="Stool" style="width: 75px; margin-top: 4px;" />
-          </td>
-          <td><input type="text" class="form-control form-control-sm rem-val" data-idx="${idx}" value="${v.remarks || ''}" placeholder="Remarks" style="min-width: 120px;" /></td>
-          <td><input type="text" class="form-control form-control-sm nurse-val" data-idx="${idx}" value="${v.takenBy || 'Nurse, RN'}" style="min-width: 110px;" /></td>
-          <td style="text-align: center;">
-            <button type="button" class="btn btn-icon btn-sm btn-danger del-vit-btn" data-idx="${idx}">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = vitals.map((v, idx) => {
+        const isLocked = idx < initialVitalsCount;
+        const lockAttr = isLocked ? 'disabled' : '';
+        const lockRowClass = isLocked ? 'locked-record-row' : '';
 
-      tbody.querySelectorAll('.dt-val').forEach(el => el.addEventListener('change', e => { vitals[parseInt(e.target.dataset.idx, 10)].dateTime = e.target.value; }));
-      tbody.querySelectorAll('.shift-val').forEach(el => el.addEventListener('change', e => { vitals[parseInt(e.target.dataset.idx, 10)].shift = e.target.value; }));
-      tbody.querySelectorAll('.bp-val').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].bp = e.target.value; }));
-      tbody.querySelectorAll('.hr-val').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].pulse = e.target.value; }));
-      tbody.querySelectorAll('.rr-val').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].rr = e.target.value; }));
-      tbody.querySelectorAll('.temp-val').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].temp = e.target.value; }));
-      tbody.querySelectorAll('.spo2-val').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].spo2 = e.target.value; }));
-      tbody.querySelectorAll('.cough-val').forEach(el => el.addEventListener('change', e => { vitals[parseInt(e.target.dataset.idx, 10)].cough = e.target.value; }));
-      tbody.querySelectorAll('.pain-val').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].pain = e.target.value; }));
-      tbody.querySelectorAll('.intake-val').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].intake = e.target.value; }));
-      tbody.querySelectorAll('.urine-val').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].urine = e.target.value; }));
-      tbody.querySelectorAll('.stool-val').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].stool = e.target.value; }));
-      tbody.querySelectorAll('.rem-val').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].remarks = e.target.value; }));
-      tbody.querySelectorAll('.nurse-val').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].takenBy = e.target.value; }));
+        return `
+          <tr class="${lockRowClass}">
+            <td>
+              <input type="datetime-local" class="form-control form-control-sm dt-val" data-idx="${idx}" value="${v.dateTime ? v.dateTime.substring(0, 16) : ''}" style="min-width: 150px;" ${lockAttr} />
+              <select class="form-control form-control-sm shift-val" data-idx="${idx}" style="margin-top: 4px;" ${lockAttr}>
+                <option value="7-3" ${v.shift === '7-3' ? 'selected' : ''}>7-3</option>
+                <option value="3-11" ${v.shift === '3-11' ? 'selected' : ''}>3-11</option>
+                <option value="11-7" ${v.shift === '11-7' ? 'selected' : ''}>11-7</option>
+              </select>
+            </td>
+            <td><input type="text" class="form-control form-control-sm bp-val" data-idx="${idx}" value="${v.bp || ''}" placeholder="120/80" style="width: 75px;" ${lockAttr} /></td>
+            <td><input type="number" class="form-control form-control-sm hr-val" data-idx="${idx}" value="${v.pulse || v.hr || ''}" placeholder="80" style="width: 65px;" ${lockAttr} /></td>
+            <td><input type="number" class="form-control form-control-sm rr-val" data-idx="${idx}" value="${v.rr || ''}" placeholder="18" style="width: 60px;" ${lockAttr} /></td>
+            <td><input type="number" step="0.1" class="form-control form-control-sm temp-val" data-idx="${idx}" value="${v.temp || ''}" placeholder="36.5" style="width: 70px;" ${lockAttr} /></td>
+            <td><input type="number" class="form-control form-control-sm spo2-val" data-idx="${idx}" value="${v.spo2 || ''}" placeholder="98" style="width: 65px;" ${lockAttr} /></td>
+            <td>
+              <select class="form-control form-control-sm cough-val" data-idx="${idx}" style="width: 75px;" ${lockAttr}>
+                <option value="w/o" ${v.cough === 'w/o' ? 'selected' : ''}>w/o</option>
+                <option value="w" ${v.cough === 'w' ? 'selected' : ''}>w/</option>
+              </select>
+            </td>
+            <td><input type="number" min="0" max="10" class="form-control form-control-sm pain-val" data-idx="${idx}" value="${v.pain || '0'}" style="width: 55px;" ${lockAttr} /></td>
+            <td><input type="number" class="form-control form-control-sm intake-val" data-idx="${idx}" value="${v.intake || ''}" placeholder="cc" style="width: 70px;" ${lockAttr} /></td>
+            <td>
+              <input type="text" class="form-control form-control-sm urine-val" data-idx="${idx}" value="${v.urine || ''}" placeholder="Urine cc" style="width: 75px;" ${lockAttr} />
+              <input type="text" class="form-control form-control-sm stool-val" data-idx="${idx}" value="${v.stool || ''}" placeholder="Stool" style="width: 75px; margin-top: 4px;" ${lockAttr} />
+            </td>
+            <td><input type="text" class="form-control form-control-sm rem-val" data-idx="${idx}" value="${v.remarks || ''}" placeholder="Remarks" style="min-width: 120px;" ${lockAttr} /></td>
+            <td><input type="text" class="form-control form-control-sm nurse-val" data-idx="${idx}" value="${v.takenBy || 'Nurse, RN'}" style="min-width: 110px;" ${lockAttr} /></td>
+            <td style="text-align: center;">
+              ${isLocked ? `
+                <span class="locked-badge-pill" title="Locked clinical record (Permanent medical entry)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  Locked
+                </span>
+              ` : `
+                <button type="button" class="btn btn-icon btn-sm btn-danger del-vit-btn" data-idx="${idx}" title="Delete Row">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('.dt-val:not([disabled])').forEach(el => el.addEventListener('change', e => { vitals[parseInt(e.target.dataset.idx, 10)].dateTime = e.target.value; }));
+      tbody.querySelectorAll('.shift-val:not([disabled])').forEach(el => el.addEventListener('change', e => { vitals[parseInt(e.target.dataset.idx, 10)].shift = e.target.value; }));
+      tbody.querySelectorAll('.bp-val:not([disabled])').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].bp = e.target.value; }));
+      tbody.querySelectorAll('.hr-val:not([disabled])').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].pulse = e.target.value; }));
+      tbody.querySelectorAll('.rr-val:not([disabled])').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].rr = e.target.value; }));
+      tbody.querySelectorAll('.temp-val:not([disabled])').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].temp = e.target.value; }));
+      tbody.querySelectorAll('.spo2-val:not([disabled])').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].spo2 = e.target.value; }));
+      tbody.querySelectorAll('.cough-val:not([disabled])').forEach(el => el.addEventListener('change', e => { vitals[parseInt(e.target.dataset.idx, 10)].cough = e.target.value; }));
+      tbody.querySelectorAll('.pain-val:not([disabled])').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].pain = e.target.value; }));
+      tbody.querySelectorAll('.intake-val:not([disabled])').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].intake = e.target.value; }));
+      tbody.querySelectorAll('.urine-val:not([disabled])').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].urine = e.target.value; }));
+      tbody.querySelectorAll('.stool-val:not([disabled])').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].stool = e.target.value; }));
+      tbody.querySelectorAll('.rem-val:not([disabled])').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].remarks = e.target.value; }));
+      tbody.querySelectorAll('.nurse-val:not([disabled])').forEach(el => el.addEventListener('input', e => { vitals[parseInt(e.target.dataset.idx, 10)].takenBy = e.target.value; }));
 
       tbody.querySelectorAll('.del-vit-btn').forEach(btn => btn.addEventListener('click', async () => {
         const idx = parseInt(btn.dataset.idx, 10);
@@ -208,6 +222,8 @@ export const VitalsForm = {
 
     container.innerHTML = `
       ${renderFormStandardHeader(patient, 'Vital Signs Monitoring (Edit Mode)', 'WW-VIT-05')}
+
+      ${renderImmutableNotice("Vital Signs Monitoring", "Previous vital sign records are permanent clinical data and cannot be altered or removed. New readings can be added below.")}
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <div style="font-size: 0.84rem; color: var(--text-secondary);">
@@ -234,7 +250,7 @@ export const VitalsForm = {
               <th>Output</th>
               <th>Remarks</th>
               <th>Nurse</th>
-              <th>Act</th>
+              <th style="text-align: center; width: 75px;">Status</th>
             </tr>
           </thead>
           <tbody id="vitals-tbody"></tbody>

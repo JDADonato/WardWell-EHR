@@ -1,5 +1,5 @@
 // Form 8: Medication Administration Record (MAR)
-import { renderFormStandardHeader } from './common.js';
+import { renderFormStandardHeader, renderImmutableNotice } from './common.js';
 import { formatDate, getCurrentISODate } from '../utils/dates.js';
 import { generateId } from '../utils/id.js';
 import { showConfirm } from '../ui/confirm.js';
@@ -124,6 +124,9 @@ export const MarForm = {
 
   renderEdit(patient, onSave, onCancel) {
     let meds = Array.isArray(patient.forms?.mar) ? JSON.parse(JSON.stringify(patient.forms.mar)) : [];
+    const initialMedsCount = meds.length;
+    // Snapshot of existing administered doses so they cannot be overwritten
+    const initialSlotsMap = meds.map(m => ({ ...(m.slots || {}) }));
 
     const container = document.createElement('div');
     container.className = 'form-paper';
@@ -144,50 +147,73 @@ export const MarForm = {
       }
 
       tbody.innerHTML = meds.map((m, idx) => {
+        const isExisting = idx < initialMedsCount;
+        const lockAttr = isExisting ? 'disabled' : '';
+        const lockRowClass = isExisting ? 'locked-record-row' : '';
+
         const s7 = m.slots?.slot_7_3 || 'Not yet';
         const s3 = m.slots?.slot_3_11 || 'Not yet';
         const s11 = m.slots?.slot_11_7 || 'Not yet';
 
+        const is7Locked = isExisting && initialSlotsMap[idx]?.slot_7_3 && initialSlotsMap[idx].slot_7_3 !== 'Not yet';
+        const is3Locked = isExisting && initialSlotsMap[idx]?.slot_3_11 && initialSlotsMap[idx].slot_3_11 !== 'Not yet';
+        const is11Locked = isExisting && initialSlotsMap[idx]?.slot_11_7 && initialSlotsMap[idx].slot_11_7 !== 'Not yet';
+
+        function renderSlotButton(slotKey, slotVal, isLocked) {
+          const statusClass = slotVal === 'Given' ? 'mar-slot-given' : slotVal === 'Held' ? 'mar-slot-held' : slotVal === 'Refused' ? 'mar-slot-refused' : 'mar-slot-notyet';
+          if (isLocked) {
+            return `<button type="button" class="mar-slot-btn ${statusClass}" disabled style="opacity: 0.9; cursor: not-allowed;" title="Previously recorded administration: ${slotVal} (Permanent Record)">${slotVal[0]}<span style="font-size: 9px; vertical-align: top;">🔒</span></button>`;
+          }
+          return `<button type="button" class="mar-slot-btn slot-toggle ${statusClass}" data-idx="${idx}" data-slot="${slotKey}" title="Click to cycle status">${slotVal[0]}</button>`;
+        }
+
         return `
-          <tr>
+          <tr class="${lockRowClass}">
             <td>
-              <select class="form-control form-control-sm cat-val" data-idx="${idx}" style="margin-bottom: 4px;">
+              <select class="form-control form-control-sm cat-val" data-idx="${idx}" style="margin-bottom: 4px;" ${lockAttr}>
                 <option value="PARENTERAL" ${m.category === 'PARENTERAL' ? 'selected' : ''}>Parenteral (IV/IM/SC)</option>
                 <option value="ORAL" ${m.category === 'ORAL' ? 'selected' : ''}>Oral / Sublingual</option>
                 <option value="OTHER" ${m.category === 'OTHER' ? 'selected' : ''}>Other / Topical / Neb</option>
               </select>
-              <input type="text" class="form-control form-control-sm med-val" data-idx="${idx}" value="${m.medication || ''}" placeholder="Drug name & strength" />
+              <input type="text" class="form-control form-control-sm med-val" data-idx="${idx}" value="${m.medication || ''}" placeholder="Drug name & strength" ${lockAttr} />
             </td>
-            <td><input type="text" class="form-control form-control-sm dose-val" data-idx="${idx}" value="${m.dose || ''}" placeholder="e.g. 500mg" style="width: 80px;" /></td>
-            <td><input type="text" class="form-control form-control-sm route-val" data-idx="${idx}" value="${m.route || 'Oral'}" style="width: 70px;" /></td>
-            <td><input type="text" class="form-control form-control-sm freq-val" data-idx="${idx}" value="${m.frequency || 'OD'}" placeholder="e.g. q8h" style="width: 90px;" /></td>
-            <td><input type="date" class="form-control form-control-sm date-val" data-idx="${idx}" value="${m.startDate || getCurrentISODate()}" style="width: 130px;" /></td>
+            <td><input type="text" class="form-control form-control-sm dose-val" data-idx="${idx}" value="${m.dose || ''}" placeholder="e.g. 500mg" style="width: 80px;" ${lockAttr} /></td>
+            <td><input type="text" class="form-control form-control-sm route-val" data-idx="${idx}" value="${m.route || 'Oral'}" style="width: 70px;" ${lockAttr} /></td>
+            <td><input type="text" class="form-control form-control-sm freq-val" data-idx="${idx}" value="${m.frequency || 'OD'}" placeholder="e.g. q8h" style="width: 90px;" ${lockAttr} /></td>
+            <td><input type="date" class="form-control form-control-sm date-val" data-idx="${idx}" value="${m.startDate || getCurrentISODate()}" style="width: 130px;" ${lockAttr} /></td>
             <td>
               <div style="display: flex; gap: 0.25rem;">
-                <button type="button" class="mar-slot-btn slot-toggle ${s7 === 'Given' ? 'mar-slot-given' : s7 === 'Held' ? 'mar-slot-held' : s7 === 'Refused' ? 'mar-slot-refused' : 'mar-slot-notyet'}" data-idx="${idx}" data-slot="slot_7_3" title="Click to cycle status">${s7[0]}</button>
-                <button type="button" class="mar-slot-btn slot-toggle ${s3 === 'Given' ? 'mar-slot-given' : s3 === 'Held' ? 'mar-slot-held' : s3 === 'Refused' ? 'mar-slot-refused' : 'mar-slot-notyet'}" data-idx="${idx}" data-slot="slot_3_11" title="Click to cycle status">${s3[0]}</button>
-                <button type="button" class="mar-slot-btn slot-toggle ${s11 === 'Given' ? 'mar-slot-given' : s11 === 'Held' ? 'mar-slot-held' : s11 === 'Refused' ? 'mar-slot-refused' : 'mar-slot-notyet'}" data-idx="${idx}" data-slot="slot_11_7" title="Click to cycle status">${s11[0]}</button>
+                ${renderSlotButton('slot_7_3', s7, is7Locked)}
+                ${renderSlotButton('slot_3_11', s3, is3Locked)}
+                ${renderSlotButton('slot_11_7', s11, is11Locked)}
               </div>
             </td>
             <td><input type="text" class="form-control form-control-sm init-val" data-idx="${idx}" value="${m.nurseInitials || 'RN'}" style="width: 55px;" /></td>
             <td style="text-align: center;">
-              <button type="button" class="btn btn-icon btn-sm btn-danger del-mar-btn" data-idx="${idx}">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-              </button>
+              ${isExisting ? `
+                <span class="locked-badge-pill" title="Locked medication order (Permanent medical record)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  Locked
+                </span>
+              ` : `
+                <button type="button" class="btn btn-icon btn-sm btn-danger del-mar-btn" data-idx="${idx}" title="Delete Row">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              `}
             </td>
           </tr>
         `;
       }).join('');
 
-      tbody.querySelectorAll('.cat-val').forEach(el => el.addEventListener('change', e => { meds[parseInt(e.target.dataset.idx, 10)].category = e.target.value; }));
-      tbody.querySelectorAll('.med-val').forEach(el => el.addEventListener('input', e => { meds[parseInt(e.target.dataset.idx, 10)].medication = e.target.value; }));
-      tbody.querySelectorAll('.dose-val').forEach(el => el.addEventListener('input', e => { meds[parseInt(e.target.dataset.idx, 10)].dose = e.target.value; }));
-      tbody.querySelectorAll('.route-val').forEach(el => el.addEventListener('input', e => { meds[parseInt(e.target.dataset.idx, 10)].route = e.target.value; }));
-      tbody.querySelectorAll('.freq-val').forEach(el => el.addEventListener('input', e => { meds[parseInt(e.target.dataset.idx, 10)].frequency = e.target.value; }));
-      tbody.querySelectorAll('.date-val').forEach(el => el.addEventListener('change', e => { meds[parseInt(e.target.dataset.idx, 10)].startDate = e.target.value; }));
+      tbody.querySelectorAll('.cat-val:not([disabled])').forEach(el => el.addEventListener('change', e => { meds[parseInt(e.target.dataset.idx, 10)].category = e.target.value; }));
+      tbody.querySelectorAll('.med-val:not([disabled])').forEach(el => el.addEventListener('input', e => { meds[parseInt(e.target.dataset.idx, 10)].medication = e.target.value; }));
+      tbody.querySelectorAll('.dose-val:not([disabled])').forEach(el => el.addEventListener('input', e => { meds[parseInt(e.target.dataset.idx, 10)].dose = e.target.value; }));
+      tbody.querySelectorAll('.route-val:not([disabled])').forEach(el => el.addEventListener('input', e => { meds[parseInt(e.target.dataset.idx, 10)].route = e.target.value; }));
+      tbody.querySelectorAll('.freq-val:not([disabled])').forEach(el => el.addEventListener('input', e => { meds[parseInt(e.target.dataset.idx, 10)].frequency = e.target.value; }));
+      tbody.querySelectorAll('.date-val:not([disabled])').forEach(el => el.addEventListener('change', e => { meds[parseInt(e.target.dataset.idx, 10)].startDate = e.target.value; }));
       tbody.querySelectorAll('.init-val').forEach(el => el.addEventListener('input', e => { meds[parseInt(e.target.dataset.idx, 10)].nurseInitials = e.target.value; }));
 
-      // Slot cycle buttons
+      // Slot cycle buttons (only un-disabled/unlocked)
       tbody.querySelectorAll('.slot-toggle').forEach(btn => btn.addEventListener('click', (e) => {
         const idx = parseInt(btn.dataset.idx, 10);
         const slotKey = btn.dataset.slot;
@@ -215,6 +241,8 @@ export const MarForm = {
     container.innerHTML = `
       ${renderFormStandardHeader(patient, 'Medication Administration Record (Edit Mode)', 'WW-MAR-08')}
 
+      ${renderImmutableNotice("Medication Administration Record", "Previously ordered medications and already recorded administration doses are permanent clinical entries and cannot be altered or removed. New doses can be recorded for open slots, and new medications can be added below.")}
+
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <div style="font-size: 0.84rem; color: var(--text-secondary);">
           Click shift slot buttons (7-3, 3-11, 11-7) to cycle between Not Yet &rarr; Given &rarr; Held &rarr; Refused.
@@ -233,9 +261,9 @@ export const MarForm = {
               <th>Route</th>
               <th>Frequency</th>
               <th>Start Date</th>
-              <th style="width: 120px;">Slots (Click to Cycle)</th>
+              <th style="width: 130px;">Slots</th>
               <th>Initials</th>
-              <th>Act</th>
+              <th style="width: 75px; text-align: center;">Status</th>
             </tr>
           </thead>
           <tbody id="mar-tbody"></tbody>

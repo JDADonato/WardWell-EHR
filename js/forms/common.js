@@ -2,6 +2,17 @@
 import { CONFIG } from '../config.js';
 import { formatDate } from '../utils/dates.js';
 
+export function renderImmutableNotice(title, message) {
+  const msg = message || 'Previously saved information cannot be altered or deleted. New data, rows, and entries can be added. (Attending Physician can be updated as needed).';
+  const heading = title ? `<strong>${title}:</strong> ` : '<strong>Permanent Clinical Record:</strong> ';
+  return `
+    <div class="immutable-record-notice">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+      <span>${heading}${msg}</span>
+    </div>
+  `;
+}
+
 export function renderFormStandardHeader(patient, formTitle, formCode = 'WW-FRM-01', options = {}) {
   const fullName = `${patient.lastName}, ${patient.firstName} ${patient.middleName || ''}`.trim();
   const ageSex = `${patient.age || '—'} / ${patient.sex || '—'}`;

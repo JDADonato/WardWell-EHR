@@ -1,5 +1,5 @@
 // Form 7: Nursing Care Plan (NCP)
-import { renderFormStandardHeader } from './common.js';
+import { renderFormStandardHeader, renderImmutableNotice } from './common.js';
 import { generateId } from '../utils/id.js';
 import { showConfirm } from '../ui/confirm.js';
 
@@ -61,6 +61,7 @@ export const CarePlanForm = {
 
   renderEdit(patient, onSave, onCancel) {
     let plans = Array.isArray(patient.forms?.carePlan) ? JSON.parse(JSON.stringify(patient.forms.carePlan)) : [];
+    const initialPlansCount = plans.length;
 
     const container = document.createElement('div');
     container.className = 'form-paper';
@@ -80,28 +81,41 @@ export const CarePlanForm = {
         return;
       }
 
-      tbody.innerHTML = plans.map((p, idx) => `
-        <tr>
-          <td><textarea class="form-control form-control-sm ass-val" data-idx="${idx}" rows="3" placeholder="Subjective & Objective cues">${p.assessment || ''}</textarea></td>
-          <td><textarea class="form-control form-control-sm diag-val" data-idx="${idx}" rows="3" placeholder="NANDA Diagnosis">${p.diagnosis || ''}</textarea></td>
-          <td><textarea class="form-control form-control-sm goal-val" data-idx="${idx}" rows="3" placeholder="Goals & Outcomes">${p.goals || ''}</textarea></td>
-          <td><textarea class="form-control form-control-sm int-val" data-idx="${idx}" rows="3" placeholder="Nursing actions">${p.interventions || ''}</textarea></td>
-          <td><textarea class="form-control form-control-sm rat-val" data-idx="${idx}" rows="3" placeholder="Scientific rationale">${p.rationale || ''}</textarea></td>
-          <td><textarea class="form-control form-control-sm eva-val" data-idx="${idx}" rows="3" placeholder="Evaluation statement">${p.evaluation || ''}</textarea></td>
-          <td style="text-align: center; vertical-align: middle;">
-            <button type="button" class="btn btn-icon btn-sm btn-danger del-ncp-btn" data-idx="${idx}">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = plans.map((p, idx) => {
+        const isLocked = idx < initialPlansCount;
+        const lockAttr = isLocked ? 'disabled' : '';
+        const lockRowClass = isLocked ? 'locked-record-row' : '';
 
-      tbody.querySelectorAll('.ass-val').forEach(el => el.addEventListener('input', e => { plans[parseInt(e.target.dataset.idx, 10)].assessment = e.target.value; }));
-      tbody.querySelectorAll('.diag-val').forEach(el => el.addEventListener('input', e => { plans[parseInt(e.target.dataset.idx, 10)].diagnosis = e.target.value; }));
-      tbody.querySelectorAll('.goal-val').forEach(el => el.addEventListener('input', e => { plans[parseInt(e.target.dataset.idx, 10)].goals = e.target.value; }));
-      tbody.querySelectorAll('.int-val').forEach(el => el.addEventListener('input', e => { plans[parseInt(e.target.dataset.idx, 10)].interventions = e.target.value; }));
-      tbody.querySelectorAll('.rat-val').forEach(el => el.addEventListener('input', e => { plans[parseInt(e.target.dataset.idx, 10)].rationale = e.target.value; }));
-      tbody.querySelectorAll('.eva-val').forEach(el => el.addEventListener('input', e => { plans[parseInt(e.target.dataset.idx, 10)].evaluation = e.target.value; }));
+        return `
+          <tr class="${lockRowClass}">
+            <td><textarea class="form-control form-control-sm ass-val" data-idx="${idx}" rows="3" placeholder="Subjective & Objective cues" ${lockAttr}>${p.assessment || ''}</textarea></td>
+            <td><textarea class="form-control form-control-sm diag-val" data-idx="${idx}" rows="3" placeholder="NANDA Diagnosis" ${lockAttr}>${p.diagnosis || ''}</textarea></td>
+            <td><textarea class="form-control form-control-sm goal-val" data-idx="${idx}" rows="3" placeholder="Goals & Outcomes" ${lockAttr}>${p.goals || ''}</textarea></td>
+            <td><textarea class="form-control form-control-sm int-val" data-idx="${idx}" rows="3" placeholder="Nursing actions" ${lockAttr}>${p.interventions || ''}</textarea></td>
+            <td><textarea class="form-control form-control-sm rat-val" data-idx="${idx}" rows="3" placeholder="Scientific rationale" ${lockAttr}>${p.rationale || ''}</textarea></td>
+            <td><textarea class="form-control form-control-sm eva-val" data-idx="${idx}" rows="3" placeholder="Evaluation statement" ${lockAttr}>${p.evaluation || ''}</textarea></td>
+            <td style="text-align: center; vertical-align: middle;">
+              ${isLocked ? `
+                <span class="locked-badge-pill" title="Locked clinical record (Permanent medical entry)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  Locked
+                </span>
+              ` : `
+                <button type="button" class="btn btn-icon btn-sm btn-danger del-ncp-btn" data-idx="${idx}" title="Delete Row">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('.ass-val:not([disabled])').forEach(el => el.addEventListener('input', e => { plans[parseInt(e.target.dataset.idx, 10)].assessment = e.target.value; }));
+      tbody.querySelectorAll('.diag-val:not([disabled])').forEach(el => el.addEventListener('input', e => { plans[parseInt(e.target.dataset.idx, 10)].diagnosis = e.target.value; }));
+      tbody.querySelectorAll('.goal-val:not([disabled])').forEach(el => el.addEventListener('input', e => { plans[parseInt(e.target.dataset.idx, 10)].goals = e.target.value; }));
+      tbody.querySelectorAll('.int-val:not([disabled])').forEach(el => el.addEventListener('input', e => { plans[parseInt(e.target.dataset.idx, 10)].interventions = e.target.value; }));
+      tbody.querySelectorAll('.rat-val:not([disabled])').forEach(el => el.addEventListener('input', e => { plans[parseInt(e.target.dataset.idx, 10)].rationale = e.target.value; }));
+      tbody.querySelectorAll('.eva-val:not([disabled])').forEach(el => el.addEventListener('input', e => { plans[parseInt(e.target.dataset.idx, 10)].evaluation = e.target.value; }));
 
       tbody.querySelectorAll('.del-ncp-btn').forEach(btn => btn.addEventListener('click', async () => {
         const idx = parseInt(btn.dataset.idx, 10);
@@ -119,6 +133,8 @@ export const CarePlanForm = {
 
     container.innerHTML = `
       ${renderFormStandardHeader(patient, 'Nursing Care Plan (Edit Mode)', 'WW-NCP-07')}
+
+      ${renderImmutableNotice("Nursing Care Plan", "Previous nursing diagnoses and care plans are permanent clinical entries and cannot be altered or removed. New care plans can be added below.")}
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <div style="font-size: 0.84rem; color: var(--text-secondary);">
@@ -139,7 +155,7 @@ export const CarePlanForm = {
               <th style="width: 18%;">Interventions</th>
               <th style="width: 14%;">Rationale</th>
               <th style="width: 12%;">Evaluation</th>
-              <th style="width: 4%; text-align: center;">Act</th>
+              <th style="width: 75px; text-align: center;">Status</th>
             </tr>
           </thead>
           <tbody id="ncp-tbody"></tbody>

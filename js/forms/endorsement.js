@@ -1,5 +1,5 @@
 // Form 10: Patient Endorsement Form (Handover / SBAR)
-import { renderFormStandardHeader } from './common.js';
+import { renderFormStandardHeader, renderImmutableNotice } from './common.js';
 import { formatDate, getCurrentISODate } from '../utils/dates.js';
 
 export const EndorsementForm = {
@@ -138,6 +138,8 @@ export const EndorsementForm = {
     container.innerHTML = `
       ${renderFormStandardHeader(patient, 'Patient Endorsement Sheet (Edit Mode)', 'WW-END-10')}
 
+      ${renderImmutableNotice("Shift Endorsement Sheet", "Previously recorded shift endorsement entries are permanent legal handover records and cannot be altered. Empty fields can still be completed.")}
+
       <form id="endorsement-form">
         <!-- A. Shift Details -->
         <section class="form-section">
@@ -237,24 +239,34 @@ export const EndorsementForm = {
       </form>
     `;
 
+    // Lock previously populated fields to preserve medical record immutability
+    container.querySelectorAll('input, select, textarea').forEach(el => {
+      const val = el.value?.trim();
+      if (val && val !== '') {
+        el.setAttribute('disabled', 'true');
+        el.setAttribute('title', 'Permanent record: Previously recorded handover endorsement cannot be altered.');
+        el.classList.add('field-locked');
+      }
+    });
+
     container.querySelector('#endorsement-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const updated = {
-        date: container.querySelector('#end-date').value,
-        shift: container.querySelector('#end-shift').value,
-        outgoingNurse: container.querySelector('#end-outgoing').value.trim(),
-        incomingNurse: container.querySelector('#end-incoming').value.trim(),
-        vitalsSummary: container.querySelector('#end-vs').value.trim(),
-        neuro: container.querySelector('#end-neuro').value.trim(),
-        chestLungs: container.querySelector('#end-chest').value.trim(),
-        cardiac: container.querySelector('#end-cardiac').value.trim(),
-        abdomen: container.querySelector('#end-abdomen').value.trim(),
-        lines: container.querySelector('#end-lines').value.trim(),
-        medicationsOnBoard: container.querySelector('#end-meds').value.trim(),
-        situation: container.querySelector('#end-sit').value.trim(),
-        background: container.querySelector('#end-bg').value.trim(),
-        assessment: container.querySelector('#end-ass').value.trim(),
-        recommendation: container.querySelector('#end-rec').value.trim()
+        date: container.querySelector('#end-date')?.value || end.date,
+        shift: container.querySelector('#end-shift')?.value || end.shift,
+        outgoingNurse: (container.querySelector('#end-outgoing')?.value || end.outgoingNurse || '').trim(),
+        incomingNurse: (container.querySelector('#end-incoming')?.value || end.incomingNurse || '').trim(),
+        vitalsSummary: (container.querySelector('#end-vs')?.value || end.vitalsSummary || '').trim(),
+        neuro: (container.querySelector('#end-neuro')?.value || end.neuro || '').trim(),
+        chestLungs: (container.querySelector('#end-chest')?.value || end.chestLungs || '').trim(),
+        cardiac: (container.querySelector('#end-cardiac')?.value || end.cardiac || '').trim(),
+        abdomen: (container.querySelector('#end-abdomen')?.value || end.abdomen || '').trim(),
+        lines: (container.querySelector('#end-lines')?.value || end.lines || '').trim(),
+        medicationsOnBoard: (container.querySelector('#end-meds')?.value || end.medicationsOnBoard || '').trim(),
+        situation: (container.querySelector('#end-sit')?.value || end.situation || '').trim(),
+        background: (container.querySelector('#end-bg')?.value || end.background || '').trim(),
+        assessment: (container.querySelector('#end-ass')?.value || end.assessment || '').trim(),
+        recommendation: (container.querySelector('#end-rec')?.value || end.recommendation || '').trim()
       };
       onSave(updated);
     });

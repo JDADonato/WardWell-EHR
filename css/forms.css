@@ -122,6 +122,47 @@
 }
 
 /* ==========================================================================
+   IMMUTABLE MEDICAL RECORD STYLES
+   ========================================================================== */
+.locked-record-row {
+  background-color: rgba(0, 0, 0, 0.018);
+}
+
+.locked-record-row td {
+  color: var(--text-secondary);
+}
+
+.locked-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background-color: var(--mist);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.45rem;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.immutable-record-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background-color: var(--mist);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--sage-dark);
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.25rem;
+  line-height: 1.4;
+}
+
+/* ==========================================================================
    FORM SECTIONS & GRIDS
    ========================================================================== */
 .form-section {

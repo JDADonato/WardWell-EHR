@@ -1,5 +1,5 @@
 // Form 9: Nurse's Progress Notes
-import { renderFormStandardHeader } from './common.js';
+import { renderFormStandardHeader, renderImmutableNotice } from './common.js';
 import { formatDate, getCurrentISODateTime } from '../utils/dates.js';
 import { generateId } from '../utils/id.js';
 import { showConfirm } from '../ui/confirm.js';
@@ -91,6 +91,7 @@ export const ProgressNotesForm = {
 
   renderEdit(patient, onSave, onCancel) {
     let notes = Array.isArray(patient.forms?.progressNotes) ? JSON.parse(JSON.stringify(patient.forms.progressNotes)) : [];
+    const initialNotesCount = notes.length;
 
     const container = document.createElement('div');
     container.className = 'form-paper';
@@ -110,38 +111,51 @@ export const ProgressNotesForm = {
         return;
       }
 
-      tbody.innerHTML = notes.map((n, idx) => `
-        <tr>
-          <td>
-            <input type="datetime-local" class="form-control form-control-sm dt-val" data-idx="${idx}" value="${n.dateTime ? n.dateTime.substring(0, 16) : ''}" style="min-width: 150px;" />
-            <select class="form-control form-control-sm shift-val" data-idx="${idx}" style="margin-top: 4px;">
-              <option value="7-3" ${n.shift === '7-3' ? 'selected' : ''}>7-3 (Day)</option>
-              <option value="3-11" ${n.shift === '3-11' ? 'selected' : ''}>3-11 (Eve)</option>
-              <option value="11-7" ${n.shift === '11-7' ? 'selected' : ''}>11-7 (Night)</option>
-            </select>
-          </td>
-          <td>
-            <input type="text" class="form-control form-control-sm focus-val" data-idx="${idx}" value="${n.focus || ''}" placeholder="e.g. Pain Management, Respiratory" style="min-width: 140px;" />
-          </td>
-          <td>
-            <textarea class="form-control form-control-sm note-val" data-idx="${idx}" rows="4" placeholder="D > (Data)\nA > (Action)\nR > (Response)">${n.note || ''}</textarea>
-          </td>
-          <td>
-            <input type="text" class="form-control form-control-sm sig-val" data-idx="${idx}" value="${n.signature || 'Staff Nurse, RN'}" placeholder="Nurse Signature" style="min-width: 130px;" />
-          </td>
-          <td style="text-align: center;">
-            <button type="button" class="btn btn-icon btn-sm btn-danger del-note-btn" data-idx="${idx}">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = notes.map((n, idx) => {
+        const isLocked = idx < initialNotesCount;
+        const lockAttr = isLocked ? 'disabled' : '';
+        const lockRowClass = isLocked ? 'locked-record-row' : '';
 
-      tbody.querySelectorAll('.dt-val').forEach(el => el.addEventListener('change', e => { notes[parseInt(e.target.dataset.idx, 10)].dateTime = e.target.value; }));
-      tbody.querySelectorAll('.shift-val').forEach(el => el.addEventListener('change', e => { notes[parseInt(e.target.dataset.idx, 10)].shift = e.target.value; }));
-      tbody.querySelectorAll('.focus-val').forEach(el => el.addEventListener('input', e => { notes[parseInt(e.target.dataset.idx, 10)].focus = e.target.value; }));
-      tbody.querySelectorAll('.note-val').forEach(el => el.addEventListener('input', e => { notes[parseInt(e.target.dataset.idx, 10)].note = e.target.value; }));
-      tbody.querySelectorAll('.sig-val').forEach(el => el.addEventListener('input', e => { notes[parseInt(e.target.dataset.idx, 10)].signature = e.target.value; }));
+        return `
+          <tr class="${lockRowClass}">
+            <td>
+              <input type="datetime-local" class="form-control form-control-sm dt-val" data-idx="${idx}" value="${n.dateTime ? n.dateTime.substring(0, 16) : ''}" style="min-width: 150px;" ${lockAttr} />
+              <select class="form-control form-control-sm shift-val" data-idx="${idx}" style="margin-top: 4px;" ${lockAttr}>
+                <option value="7-3" ${n.shift === '7-3' ? 'selected' : ''}>7-3 (Day)</option>
+                <option value="3-11" ${n.shift === '3-11' ? 'selected' : ''}>3-11 (Eve)</option>
+                <option value="11-7" ${n.shift === '11-7' ? 'selected' : ''}>11-7 (Night)</option>
+              </select>
+            </td>
+            <td>
+              <input type="text" class="form-control form-control-sm focus-val" data-idx="${idx}" value="${n.focus || ''}" placeholder="e.g. Pain Management, Respiratory" style="min-width: 140px;" ${lockAttr} />
+            </td>
+            <td>
+              <textarea class="form-control form-control-sm note-val" data-idx="${idx}" rows="4" placeholder="D > (Data)\nA > (Action)\nR > (Response)" ${lockAttr}>${n.note || ''}</textarea>
+            </td>
+            <td>
+              <input type="text" class="form-control form-control-sm sig-val" data-idx="${idx}" value="${n.signature || 'Staff Nurse, RN'}" placeholder="Nurse Signature" style="min-width: 130px;" ${lockAttr} />
+            </td>
+            <td style="text-align: center;">
+              ${isLocked ? `
+                <span class="locked-badge-pill" title="Locked clinical record (Permanent medical entry)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  Locked
+                </span>
+              ` : `
+                <button type="button" class="btn btn-icon btn-sm btn-danger del-note-btn" data-idx="${idx}" title="Delete Row">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('.dt-val:not([disabled])').forEach(el => el.addEventListener('change', e => { notes[parseInt(e.target.dataset.idx, 10)].dateTime = e.target.value; }));
+      tbody.querySelectorAll('.shift-val:not([disabled])').forEach(el => el.addEventListener('change', e => { notes[parseInt(e.target.dataset.idx, 10)].shift = e.target.value; }));
+      tbody.querySelectorAll('.focus-val:not([disabled])').forEach(el => el.addEventListener('input', e => { notes[parseInt(e.target.dataset.idx, 10)].focus = e.target.value; }));
+      tbody.querySelectorAll('.note-val:not([disabled])').forEach(el => el.addEventListener('input', e => { notes[parseInt(e.target.dataset.idx, 10)].note = e.target.value; }));
+      tbody.querySelectorAll('.sig-val:not([disabled])').forEach(el => el.addEventListener('input', e => { notes[parseInt(e.target.dataset.idx, 10)].signature = e.target.value; }));
 
       tbody.querySelectorAll('.del-note-btn').forEach(btn => btn.addEventListener('click', async () => {
         const idx = parseInt(btn.dataset.idx, 10);
@@ -160,9 +174,11 @@ export const ProgressNotesForm = {
     container.innerHTML = `
       ${renderFormStandardHeader(patient, "Nurse's Progress Notes (Edit Mode)", 'WW-NPN-09')}
 
+      ${renderImmutableNotice("Nurse's Progress Notes", "Previous DAR progress notes are permanent legal clinical entries and cannot be altered or removed. New progress notes can be added below.")}
+
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <div style="font-size: 0.84rem; color: var(--text-secondary);">
-          Add or edit DAR (Data, Action, Response) clinical notes.
+          Add new DAR (Data, Action, Response) clinical notes.
         </div>
         <button type="button" class="btn btn-sm btn-secondary" id="btn-add-note-row">
           + Add DAR Note
@@ -177,7 +193,7 @@ export const ProgressNotesForm = {
               <th style="width: 160px;">Focus</th>
               <th>D &bull; A &bull; R Note Text</th>
               <th style="width: 150px;">Nurse Signature</th>
-              <th style="width: 50px; text-align: center;">Act</th>
+              <th style="width: 75px; text-align: center;">Status</th>
             </tr>
           </thead>
           <tbody id="notes-edit-tbody"></tbody>

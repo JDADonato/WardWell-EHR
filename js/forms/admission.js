@@ -1,5 +1,5 @@
 // Form 1: Patient Information & Admission Form
-import { renderFormStandardHeader } from './common.js';
+import { renderFormStandardHeader, renderImmutableNotice } from './common.js';
 import { formatDate, calculateAge, getCurrentISODate, getCurrentISOTime } from '../utils/dates.js';
 
 export const AdmissionForm = {
@@ -192,6 +192,8 @@ export const AdmissionForm = {
     container.innerHTML = `
       ${renderFormStandardHeader(patient, 'General Hospital Admission Form (Edit Mode)', 'WW-ADM-01')}
 
+      ${renderImmutableNotice("General Hospital Admission", "Previously entered patient admission data cannot be altered. Empty fields can be completed, and Attending Physician can be changed.")}
+
       <form id="admission-form">
         <!-- 1. Patient Information -->
         <section class="form-section">
@@ -380,42 +382,53 @@ export const AdmissionForm = {
       </form>
     `;
 
+    // Lock previously populated fields to preserve medical record immutability
+    container.querySelectorAll('input, select, textarea').forEach(el => {
+      if (el.id === 'adm-attendingPhysician') return; // Doctor name can always be updated
+      const val = el.value?.trim();
+      if (val && val !== '') {
+        el.setAttribute('disabled', 'true');
+        el.setAttribute('title', 'Permanent record: Previously recorded information cannot be altered.');
+        el.classList.add('field-locked');
+      }
+    });
+
     // Event binding
     const form = container.querySelector('#admission-form');
     form.addEventListener('submit', (e) => {
       e.preventDefault();
 
       const updatedData = {
-        lastName: container.querySelector('#adm-lastName').value.trim(),
-        firstName: container.querySelector('#adm-firstName').value.trim(),
-        middleName: container.querySelector('#adm-middleName').value.trim(),
-        dob: container.querySelector('#adm-dob').value,
-        sex: container.querySelector('#adm-sex').value,
-        civilStatus: container.querySelector('#adm-civilStatus').value,
-        address: container.querySelector('#adm-address').value.trim(),
-        cityStateZip: container.querySelector('#adm-cityStateZip').value.trim(),
-        phone: container.querySelector('#adm-phone').value.trim(),
-        email: container.querySelector('#adm-email').value.trim(),
-        occupation: container.querySelector('#adm-occupation').value.trim(),
-        insuranceProvider: container.querySelector('#adm-insuranceProvider').value.trim(),
-        philhealthNo: container.querySelector('#adm-philhealthNo').value.trim(),
-        paymentMethod: container.querySelector('#adm-paymentMethod').value,
+        lastName: (container.querySelector('#adm-lastName')?.value || patient.lastName || '').trim(),
+        firstName: (container.querySelector('#adm-firstName')?.value || patient.firstName || '').trim(),
+        middleName: (container.querySelector('#adm-middleName')?.value || patient.middleName || '').trim(),
+        dob: container.querySelector('#adm-dob')?.value || patient.dob,
+        sex: container.querySelector('#adm-sex')?.value || patient.sex,
+        civilStatus: container.querySelector('#adm-civilStatus')?.value || patient.civilStatus,
+        address: (container.querySelector('#adm-address')?.value || patient.address || '').trim(),
+        cityStateZip: (container.querySelector('#adm-cityStateZip')?.value || patient.cityStateZip || '').trim(),
+        phone: (container.querySelector('#adm-phone')?.value || patient.phone || '').trim(),
+        email: (container.querySelector('#adm-email')?.value || patient.email || '').trim(),
+        occupation: (container.querySelector('#adm-occupation')?.value || patient.occupation || '').trim(),
+        insuranceProvider: (container.querySelector('#adm-insuranceProvider')?.value || patient.insuranceProvider || '').trim(),
+        philhealthNo: (container.querySelector('#adm-philhealthNo')?.value || patient.philhealthNo || '').trim(),
+        paymentMethod: container.querySelector('#adm-paymentMethod')?.value || patient.paymentMethod,
         emergencyContact: {
-          name: container.querySelector('#adm-ecName').value.trim(),
-          relationship: container.querySelector('#adm-ecRel').value.trim(),
-          phone: container.querySelector('#adm-ecPhone').value.trim()
+          name: (container.querySelector('#adm-ecName')?.value || patient.emergencyContact?.name || '').trim(),
+          relationship: (container.querySelector('#adm-ecRel')?.value || patient.emergencyContact?.relationship || '').trim(),
+          phone: (container.querySelector('#adm-ecPhone')?.value || patient.emergencyContact?.phone || '').trim()
         },
-        admissionDate: `${container.querySelector('#adm-date').value}T${container.querySelector('#adm-time').value}`,
-        roomBed: container.querySelector('#adm-roomBed').value.trim(),
-        attendingPhysician: container.querySelector('#adm-attendingPhysician').value.trim(),
-        admittingDiagnosis: container.querySelector('#adm-diagnosis').value.trim(),
-        chiefComplaint: container.querySelector('#adm-chiefComplaint').value.trim(),
-        allergies: container.querySelector('#adm-allergies').value.trim(),
-        bloodGroup: container.querySelector('#adm-bloodGroup').value,
-        currentMedications: container.querySelector('#adm-currentMeds').value.trim(),
-        pastMedicalHistory: container.querySelector('#adm-pastMedicalHistory').value.trim(),
-        previousSurgeries: container.querySelector('#adm-previousSurgeries').value.trim(),
-        referredBy: container.querySelector('#adm-referredBy').value.trim()
+        admissionDate: `${container.querySelector('#adm-date')?.value || patient.admissionDate?.split('T')[0]}T${container.querySelector('#adm-time')?.value || '00:00'}`,
+        roomBed: (container.querySelector('#adm-roomBed')?.value || patient.roomBed || '').trim(),
+        attendingPhysician: container.querySelector('#adm-attendingPhysician')?.value.trim() || patient.attendingPhysician,
+        admittingDiagnosis: (container.querySelector('#adm-diagnosis')?.value || patient.admittingDiagnosis || '').trim(),
+        chiefComplaint: (container.querySelector('#adm-chiefComplaint')?.value || patient.chiefComplaint || '').trim(),
+        allergies: (container.querySelector('#adm-allergies')?.value || patient.allergies || '').trim(),
+        bloodGroup: container.querySelector('#adm-bloodGroup')?.value || f.bloodGroup,
+        currentMedications: (container.querySelector('#adm-currentMeds')?.value || f.currentMedications || '').trim(),
+        pastMedicalHistory: (container.querySelector('#adm-pastMedicalHistory')?.value || f.pastMedicalHistory || '').trim(),
+        previousSurgeries: (container.querySelector('#adm-previousSurgeries')?.value || f.previousSurgeries || '').trim(),
+        referredBy: (container.querySelector('#adm-referredBy')?.value || f.referredBy || '').trim()
       };
 
       onSave(updatedData);

@@ -1,5 +1,5 @@
 // Form 4: Doctor's Orders / Nurses Compliance Sheet
-import { renderFormStandardHeader } from './common.js';
+import { renderFormStandardHeader, renderImmutableNotice } from './common.js';
 import { formatDate, getCurrentISODateTime, getCurrentISODate, getCurrentISOTime } from '../utils/dates.js';
 import { generateId } from '../utils/id.js';
 import { showConfirm } from '../ui/confirm.js';
@@ -167,6 +167,7 @@ export const DoctorsOrderForm = {
 
   renderEdit(patient, onSave, onCancel) {
     let orders = Array.isArray(patient.forms?.doctorsOrders) ? JSON.parse(JSON.stringify(patient.forms.doctorsOrders)) : [];
+    const initialOrdersCount = orders.length;
 
     const container = document.createElement('div');
     container.className = 'form-paper';
@@ -186,84 +187,97 @@ export const DoctorsOrderForm = {
         return;
       }
 
-      tbody.innerHTML = orders.map((ord, idx) => `
-        <tr>
-          <td>
-            <input type="datetime-local" class="form-control form-control-sm dt-input" data-idx="${idx}" value="${ord.dateTime ? ord.dateTime.substring(0, 16) : ''}" style="min-width: 160px;" />
-            <select class="form-control form-control-sm shift-input" data-idx="${idx}" style="margin-top: 4px;">
-              <option value="7-3" ${ord.shift === '7-3' ? 'selected' : ''}>7am - 3pm</option>
-              <option value="3-11" ${ord.shift === '3-11' ? 'selected' : ''}>3pm - 11pm</option>
-              <option value="11-7" ${ord.shift === '11-7' ? 'selected' : ''}>11pm - 7am</option>
-            </select>
-          </td>
-          <td>
-            <input type="text" class="form-control form-control-sm prog-input" data-idx="${idx}" value="${ord.progressNotes || ''}" placeholder="e.g. For Labs, NPO" />
-          </td>
-          <td>
-            <textarea class="form-control form-control-sm text-input" data-idx="${idx}" rows="2">${ord.orderText || ''}</textarea>
-            <div style="display: flex; gap: 0.5rem; margin-top: 4px;">
-              <select class="form-control form-control-sm type-input" data-idx="${idx}">
-                <option value="medication" ${ord.type === 'medication' ? 'selected' : ''}>Medication</option>
-                <option value="IV" ${ord.type === 'IV' ? 'selected' : ''}>IV Solution</option>
-                <option value="labs" ${ord.type === 'labs' ? 'selected' : ''}>Laboratory</option>
-                <option value="imaging" ${ord.type === 'imaging' ? 'selected' : ''}>Imaging / Diagnostic</option>
-                <option value="diet" ${ord.type === 'diet' ? 'selected' : ''}>Diet</option>
-                <option value="monitoring" ${ord.type === 'monitoring' ? 'selected' : ''}>Monitoring / Vitals</option>
-              </select>
-              <select class="form-control form-control-sm status-input" data-idx="${idx}">
-                <option value="Active" ${ord.status === 'Active' ? 'selected' : ''}>Active</option>
-                <option value="Done" ${ord.status === 'Done' ? 'selected' : ''}>Done</option>
-                <option value="Discontinued" ${ord.status === 'Discontinued' ? 'selected' : ''}>Discontinued</option>
-              </select>
-            </div>
-          </td>
-          <td>
-            <select class="form-control form-control-sm comp-input" data-idx="${idx}">
-              <option value="C" ${ord.compliance === 'C' ? 'selected' : ''}>C (Carried)</option>
-              <option value="A" ${ord.compliance === 'A' ? 'selected' : ''}>A (Administered)</option>
-              <option value="R" ${ord.compliance === 'R' ? 'selected' : ''}>R (Requested)</option>
-              <option value="E" ${ord.compliance === 'E' ? 'selected' : ''}>E (Endorsed)</option>
-              <option value="D" ${ord.compliance === 'D' ? 'selected' : ''}>D (Discontinued)</option>
-            </select>
-          </td>
-          <td>
-            <input type="text" class="form-control form-control-sm nurse-input" data-idx="${idx}" value="${ord.notedBy || 'Staff Nurse, RN'}" placeholder="Nurse Signature" />
-            <input type="text" class="form-control form-control-sm time-input" data-idx="${idx}" value="${ord.timePosted || getCurrentISOTime()}" placeholder="Time Posted" style="margin-top: 4px;" />
-          </td>
-          <td style="text-align: center;">
-            <button type="button" class="btn btn-icon btn-sm btn-danger del-btn" data-idx="${idx}" title="Delete Row">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = orders.map((ord, idx) => {
+        const isLocked = idx < initialOrdersCount;
+        const lockAttr = isLocked ? 'disabled' : '';
+        const lockRowClass = isLocked ? 'locked-record-row' : '';
 
-      // Attach row change listeners
-      tbody.querySelectorAll('.dt-input').forEach(el => el.addEventListener('change', e => {
+        return `
+          <tr class="${lockRowClass}">
+            <td>
+              <input type="datetime-local" class="form-control form-control-sm dt-input" data-idx="${idx}" value="${ord.dateTime ? ord.dateTime.substring(0, 16) : ''}" style="min-width: 160px;" ${lockAttr} />
+              <select class="form-control form-control-sm shift-input" data-idx="${idx}" style="margin-top: 4px;" ${lockAttr}>
+                <option value="7-3" ${ord.shift === '7-3' ? 'selected' : ''}>7am - 3pm</option>
+                <option value="3-11" ${ord.shift === '3-11' ? 'selected' : ''}>3pm - 11pm</option>
+                <option value="11-7" ${ord.shift === '11-7' ? 'selected' : ''}>11pm - 7am</option>
+              </select>
+            </td>
+            <td>
+              <input type="text" class="form-control form-control-sm prog-input" data-idx="${idx}" value="${ord.progressNotes || ''}" placeholder="e.g. For Labs, NPO" ${lockAttr} />
+            </td>
+            <td>
+              <textarea class="form-control form-control-sm text-input" data-idx="${idx}" rows="2" ${lockAttr}>${ord.orderText || ''}</textarea>
+              <div style="display: flex; gap: 0.5rem; margin-top: 4px;">
+                <select class="form-control form-control-sm type-input" data-idx="${idx}" ${lockAttr}>
+                  <option value="medication" ${ord.type === 'medication' ? 'selected' : ''}>Medication</option>
+                  <option value="IV" ${ord.type === 'IV' ? 'selected' : ''}>IV Solution</option>
+                  <option value="labs" ${ord.type === 'labs' ? 'selected' : ''}>Laboratory</option>
+                  <option value="imaging" ${ord.type === 'imaging' ? 'selected' : ''}>Imaging / Diagnostic</option>
+                  <option value="diet" ${ord.type === 'diet' ? 'selected' : ''}>Diet</option>
+                  <option value="monitoring" ${ord.type === 'monitoring' ? 'selected' : ''}>Monitoring / Vitals</option>
+                </select>
+                <select class="form-control form-control-sm status-input" data-idx="${idx}" ${lockAttr}>
+                  <option value="Active" ${ord.status === 'Active' ? 'selected' : ''}>Active</option>
+                  <option value="Done" ${ord.status === 'Done' ? 'selected' : ''}>Done</option>
+                  <option value="Discontinued" ${ord.status === 'Discontinued' ? 'selected' : ''}>Discontinued</option>
+                </select>
+              </div>
+            </td>
+            <td>
+              <select class="form-control form-control-sm comp-input" data-idx="${idx}" ${lockAttr}>
+                <option value="C" ${ord.compliance === 'C' ? 'selected' : ''}>C (Carried)</option>
+                <option value="A" ${ord.compliance === 'A' ? 'selected' : ''}>A (Administered)</option>
+                <option value="R" ${ord.compliance === 'R' ? 'selected' : ''}>R (Requested)</option>
+                <option value="E" ${ord.compliance === 'E' ? 'selected' : ''}>E (Endorsed)</option>
+                <option value="D" ${ord.compliance === 'D' ? 'selected' : ''}>D (Discontinued)</option>
+              </select>
+            </td>
+            <td>
+              <input type="text" class="form-control form-control-sm nurse-input" data-idx="${idx}" value="${ord.notedBy || 'Staff Nurse, RN'}" placeholder="Nurse Signature" ${lockAttr} />
+              <input type="text" class="form-control form-control-sm time-input" data-idx="${idx}" value="${ord.timePosted || getCurrentISOTime()}" placeholder="Time Posted" style="margin-top: 4px;" ${lockAttr} />
+            </td>
+            <td style="text-align: center;">
+              ${isLocked ? `
+                <span class="locked-badge-pill" title="Locked clinical record (Permanent medical entry)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  Locked
+                </span>
+              ` : `
+                <button type="button" class="btn btn-icon btn-sm btn-danger del-btn" data-idx="${idx}" title="Delete Row">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Attach row change listeners for editable rows
+      tbody.querySelectorAll('.dt-input:not([disabled])').forEach(el => el.addEventListener('change', e => {
         orders[parseInt(e.target.dataset.idx, 10)].dateTime = e.target.value;
       }));
-      tbody.querySelectorAll('.shift-input').forEach(el => el.addEventListener('change', e => {
+      tbody.querySelectorAll('.shift-input:not([disabled])').forEach(el => el.addEventListener('change', e => {
         orders[parseInt(e.target.dataset.idx, 10)].shift = e.target.value;
       }));
-      tbody.querySelectorAll('.prog-input').forEach(el => el.addEventListener('input', e => {
+      tbody.querySelectorAll('.prog-input:not([disabled])').forEach(el => el.addEventListener('input', e => {
         orders[parseInt(e.target.dataset.idx, 10)].progressNotes = e.target.value;
       }));
-      tbody.querySelectorAll('.text-input').forEach(el => el.addEventListener('input', e => {
+      tbody.querySelectorAll('.text-input:not([disabled])').forEach(el => el.addEventListener('input', e => {
         orders[parseInt(e.target.dataset.idx, 10)].orderText = e.target.value;
       }));
-      tbody.querySelectorAll('.type-input').forEach(el => el.addEventListener('change', e => {
+      tbody.querySelectorAll('.type-input:not([disabled])').forEach(el => el.addEventListener('change', e => {
         orders[parseInt(e.target.dataset.idx, 10)].type = e.target.value;
       }));
-      tbody.querySelectorAll('.status-input').forEach(el => el.addEventListener('change', e => {
+      tbody.querySelectorAll('.status-input:not([disabled])').forEach(el => el.addEventListener('change', e => {
         orders[parseInt(e.target.dataset.idx, 10)].status = e.target.value;
       }));
-      tbody.querySelectorAll('.comp-input').forEach(el => el.addEventListener('change', e => {
+      tbody.querySelectorAll('.comp-input:not([disabled])').forEach(el => el.addEventListener('change', e => {
         orders[parseInt(e.target.dataset.idx, 10)].compliance = e.target.value;
       }));
-      tbody.querySelectorAll('.nurse-input').forEach(el => el.addEventListener('input', e => {
+      tbody.querySelectorAll('.nurse-input:not([disabled])').forEach(el => el.addEventListener('input', e => {
         orders[parseInt(e.target.dataset.idx, 10)].notedBy = e.target.value;
       }));
-      tbody.querySelectorAll('.time-input').forEach(el => el.addEventListener('input', e => {
+      tbody.querySelectorAll('.time-input:not([disabled])').forEach(el => el.addEventListener('input', e => {
         orders[parseInt(e.target.dataset.idx, 10)].timePosted = e.target.value;
       }));
       tbody.querySelectorAll('.del-btn').forEach(btn => btn.addEventListener('click', async (e) => {
@@ -291,9 +305,11 @@ export const DoctorsOrderForm = {
     container.innerHTML = `
       ${renderFormStandardHeader(patient, "Doctor's Orders / Nurses Compliance Sheet (Edit Mode)", 'WW-ORD-04', { physicianSlot: editPhysicianSlot })}
 
+      ${renderImmutableNotice("Doctor's Orders", "Previously recorded physician orders are permanent legal entries and cannot be altered or removed. New orders can be added below. Attending Physician can still be updated above.")}
+
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <div style="font-size: 0.84rem; color: var(--text-secondary);">
-          Add, modify, or update compliance status for physician orders.
+          Add new orders and manage current physician directives.
         </div>
         <button type="button" class="btn btn-sm btn-secondary" id="btn-add-order-row">
           + Add Doctor's Order
@@ -309,7 +325,7 @@ export const DoctorsOrderForm = {
               <th>Doctor's Order & Tag</th>
               <th style="width: 130px;">Compliance</th>
               <th style="width: 140px;">Nurse & Time</th>
-              <th style="width: 50px; text-align: center;">Act</th>
+              <th style="width: 75px; text-align: center;">Status</th>
             </tr>
           </thead>
           <tbody id="orders-tbody">
