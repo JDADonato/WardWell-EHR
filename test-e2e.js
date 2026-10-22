@@ -201,8 +201,8 @@ async function runTest() {
       if (!formPaperExists) throw new Error(`Form ${formKey} failed to render!`);
     }
 
-    // Verify Vitals Chart Colors & Unified BP (Pulse -> Red, Temp -> Black, RR -> Blue, BP merged)
-    console.log('6b. Verifying Vitals Chart (Pulse -> Red, Temp -> Black, RR -> Blue, Merged BP (mmHg))...');
+    // Verify Vitals Chart (Pulse -> Red, Temp -> Black, RR -> Blue, BP removed from chart)
+    console.log('6b. Verifying Vitals Chart (Pulse -> Red, Temp -> Black, RR -> Blue, BP removed from graph)...');
     await evaluate('window.location.hash = "#/patients/pt_delacruz01/vitals"');
     await delay(300);
     const hasPulseRedLine = await evaluate('!!document.querySelector(\'path[stroke="#d32f2f"]\')');
@@ -212,21 +212,22 @@ async function runTest() {
     const hasTempBlackDot = await evaluate('!!document.querySelector(\'circle[fill="#000000"]\')');
     const hasRrBlueDot = await evaluate('!!document.querySelector(\'circle[fill="#1976d2"]\')');
     const hasRrBpmHeader = await evaluate('Array.from(document.querySelectorAll("th")).some(th => th.textContent.includes("RR (bpm)"))');
+    const hasBpTableHeader = await evaluate('Array.from(document.querySelectorAll("th")).some(th => th.textContent.trim() === "BP")');
     const legendText = await evaluate('document.querySelector(".vitals-legend")?.textContent || ""');
-    const hasMergedBpLegend = legendText.includes('BP (mmHg)') && !legendText.includes('BP Systolic');
-    const hasBpUnifiedBar = await evaluate('!!document.querySelector(\'line[stroke="#3f603d"][stroke-width="3"]\')');
+    const hasNoBpInLegend = !legendText.includes('BP');
+    const hasNoBpInChart = await evaluate('!document.querySelector(\'path[stroke="#3f603d"]\') && !document.querySelector(\'line[stroke="#3f603d"]\')');
 
     console.log(`   Pulse Line: ${hasPulseRedLine} | Temp Line: ${hasTempBlackLine} | RR Line: ${hasRrBlueLine}`);
     console.log(`   Pulse Dots: ${hasPulseRedDot} | Temp Dots: ${hasTempBlackDot} | RR Dots: ${hasRrBlueDot}`);
-    console.log(`   RR (bpm) Header: ${hasRrBpmHeader} | Merged BP Legend: ${hasMergedBpLegend} | Unified BP Bar: ${hasBpUnifiedBar}`);
+    console.log(`   RR (bpm) Header: ${hasRrBpmHeader} | BP Table Column: ${hasBpTableHeader} | No BP in Legend: ${hasNoBpInLegend} | No BP in Chart: ${hasNoBpInChart}`);
     if (!hasPulseRedLine || !hasTempBlackLine || !hasRrBlueLine) {
       throw new Error('Vitals chart did not apply Pulse -> red, Temp -> black, or RR -> blue stroke colors!');
     }
-    if (!hasRrBpmHeader) {
-      throw new Error('Vital signs table header did not find "RR (bpm)"!');
+    if (!hasRrBpmHeader || !hasBpTableHeader) {
+      throw new Error('Vital signs table header did not find RR (bpm) or BP column!');
     }
-    if (!hasMergedBpLegend || !hasBpUnifiedBar) {
-      throw new Error('Vital signs chart did not merge BP Systolic & Diastolic into unified BP!');
+    if (!hasNoBpInLegend || !hasNoBpInChart) {
+      throw new Error('BP was not completely removed from chart!');
     }
 
     // Verify Doctor\'s Orders Doctor Name Typing

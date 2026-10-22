@@ -78,7 +78,6 @@ export const VitalsForm = {
             Hemodynamic & Temperature Trends
           </h4>
           <div class="vitals-legend">
-            <span class="legend-item"><span class="legend-dot" style="background-color: #3f603d;"></span> BP (mmHg)</span>
             <span class="legend-item"><span class="legend-dot" style="background-color: #d32f2f;"></span> Pulse (bpm)</span>
             <span class="legend-item"><span class="legend-dot" style="background-color: #000000;"></span> Temp (°C)</span>
             <span class="legend-item"><span class="legend-dot" style="background-color: #1976d2;"></span> RR (bpm)</span>

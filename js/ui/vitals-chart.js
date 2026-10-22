@@ -36,23 +36,13 @@ export function renderVitalsChart(container, vitalsData = []) {
   const temps = sorted.map(d => { const v = parseFloat(d.temp); return isNaN(v) ? null : v; });
   const pulses = sorted.map(d => { const v = parseFloat(d.pulse || d.hr); return isNaN(v) ? null : v; });
   const rrs = sorted.map(d => { const v = parseFloat(d.rr); return isNaN(v) ? null : v; });
-  const bpHs = sorted.map(d => {
-    if (!d.bp) return null;
-    const parts = d.bp.split('/');
-    return parseFloat(parts[0]);
-  });
-  const bpLs = sorted.map(d => {
-    if (!d.bp) return null;
-    const parts = d.bp.split('/');
-    return parseFloat(parts[1]);
-  });
 
   // Calculate scales
-  // Left Axis: Heart Rate & BP (range ~ 40 to 180)
+  // Left Axis: Heart Rate / Pulse (range 40 to 160 bpm)
   const minValLeft = 40;
-  const maxValLeft = 180;
+  const maxValLeft = 160;
 
-  // Right Axis: Temp (range 35 to 40)
+  // Right Axis: Temp (range 35 to 40 °C)
   const minTemp = 35.0;
   const maxTemp = 40.0;
 
@@ -91,59 +81,6 @@ export function renderVitalsChart(container, vitalsData = []) {
     return d;
   }
 
-  // Collect BP points for unified range band & vertical indicators
-  const validBpPoints = [];
-  sorted.forEach((d, i) => {
-    const sys = bpHs[i];
-    const dia = bpLs[i];
-    if (sys !== null && dia !== null && !isNaN(sys) && !isNaN(dia)) {
-      validBpPoints.push({
-        x: getX(i),
-        ySys: getYLeft(sys),
-        yDia: getYLeft(dia),
-        sys,
-        dia,
-        raw: d.bp || `${sys}/${dia}`
-      });
-    }
-  });
-
-  // Build unified BP band SVG
-  let bpBandHtml = '';
-  if (validBpPoints.length > 1) {
-    let dArea = `M ${validBpPoints[0].x} ${validBpPoints[0].ySys}`;
-    for (let i = 1; i < validBpPoints.length; i++) {
-      dArea += ` L ${validBpPoints[i].x} ${validBpPoints[i].ySys}`;
-    }
-    for (let i = validBpPoints.length - 1; i >= 0; i--) {
-      dArea += ` L ${validBpPoints[i].x} ${validBpPoints[i].yDia}`;
-    }
-    dArea += ' Z';
-
-    bpBandHtml = `
-      <!-- Unified BP Shaded Range Band -->
-      <path d="${dArea}" fill="#3f603d" fill-opacity="0.14" />
-      <path d="${createLinePath(bpHs, getYLeft)}" fill="none" stroke="#3f603d" stroke-width="2" class="chart-line" />
-      <path d="${createLinePath(bpLs, getYLeft)}" fill="none" stroke="#3f603d" stroke-width="2" class="chart-line" />
-    `;
-  }
-
-  // Build unified BP vertical barbell connectors
-  let bpMarkersHtml = '';
-  validBpPoints.forEach(pt => {
-    bpMarkersHtml += `
-      <line x1="${pt.x}" y1="${pt.ySys}" x2="${pt.x}" y2="${pt.yDia}" stroke="#3f603d" stroke-width="3" stroke-linecap="round">
-        <title>Blood Pressure: ${pt.raw} mmHg</title>
-      </line>
-      <circle cx="${pt.x}" cy="${pt.ySys}" r="3.5" fill="#3f603d" stroke="#fff" stroke-width="1.5">
-        <title>Blood Pressure: ${pt.raw} mmHg (Systolic)</title>
-      </circle>
-      <circle cx="${pt.x}" cy="${pt.yDia}" r="3.5" fill="#3f603d" stroke="#fff" stroke-width="1.5">
-        <title>Blood Pressure: ${pt.raw} mmHg (Diastolic)</title>
-      </circle>
-    `;
-  });
-
   const pulsePath = createLinePath(pulses, getYLeft);
   const tempPath = createLinePath(temps, getYTemp);
   const rrPath = createLinePath(rrs, getYRR);
@@ -176,10 +113,6 @@ export function renderVitalsChart(container, vitalsData = []) {
     <svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: 100%; overflow: visible;">
       <!-- Grid -->
       ${gridHtml}
-
-      <!-- Unified Blood Pressure (Range Band + Barbell Connectors) -->
-      ${bpBandHtml}
-      ${bpMarkersHtml}
 
       <!-- Series Lines with animated dashoffset -->
       <path d="${pulsePath}" fill="none" stroke="#d32f2f" stroke-width="2.5" class="chart-line" />
