@@ -91,8 +91,59 @@ export function renderVitalsChart(container, vitalsData = []) {
     return d;
   }
 
-  const bpHighPath = createLinePath(bpHs, getYLeft);
-  const bpLowPath = createLinePath(bpLs, getYLeft);
+  // Collect BP points for unified range band & vertical indicators
+  const validBpPoints = [];
+  sorted.forEach((d, i) => {
+    const sys = bpHs[i];
+    const dia = bpLs[i];
+    if (sys !== null && dia !== null && !isNaN(sys) && !isNaN(dia)) {
+      validBpPoints.push({
+        x: getX(i),
+        ySys: getYLeft(sys),
+        yDia: getYLeft(dia),
+        sys,
+        dia,
+        raw: d.bp || `${sys}/${dia}`
+      });
+    }
+  });
+
+  // Build unified BP band SVG
+  let bpBandHtml = '';
+  if (validBpPoints.length > 1) {
+    let dArea = `M ${validBpPoints[0].x} ${validBpPoints[0].ySys}`;
+    for (let i = 1; i < validBpPoints.length; i++) {
+      dArea += ` L ${validBpPoints[i].x} ${validBpPoints[i].ySys}`;
+    }
+    for (let i = validBpPoints.length - 1; i >= 0; i--) {
+      dArea += ` L ${validBpPoints[i].x} ${validBpPoints[i].yDia}`;
+    }
+    dArea += ' Z';
+
+    bpBandHtml = `
+      <!-- Unified BP Shaded Range Band -->
+      <path d="${dArea}" fill="#3f603d" fill-opacity="0.14" />
+      <path d="${createLinePath(bpHs, getYLeft)}" fill="none" stroke="#3f603d" stroke-width="2" class="chart-line" />
+      <path d="${createLinePath(bpLs, getYLeft)}" fill="none" stroke="#3f603d" stroke-width="2" class="chart-line" />
+    `;
+  }
+
+  // Build unified BP vertical barbell connectors
+  let bpMarkersHtml = '';
+  validBpPoints.forEach(pt => {
+    bpMarkersHtml += `
+      <line x1="${pt.x}" y1="${pt.ySys}" x2="${pt.x}" y2="${pt.yDia}" stroke="#3f603d" stroke-width="3" stroke-linecap="round">
+        <title>Blood Pressure: ${pt.raw} mmHg</title>
+      </line>
+      <circle cx="${pt.x}" cy="${pt.ySys}" r="3.5" fill="#3f603d" stroke="#fff" stroke-width="1.5">
+        <title>Blood Pressure: ${pt.raw} mmHg (Systolic)</title>
+      </circle>
+      <circle cx="${pt.x}" cy="${pt.yDia}" r="3.5" fill="#3f603d" stroke="#fff" stroke-width="1.5">
+        <title>Blood Pressure: ${pt.raw} mmHg (Diastolic)</title>
+      </circle>
+    `;
+  });
+
   const pulsePath = createLinePath(pulses, getYLeft);
   const tempPath = createLinePath(temps, getYTemp);
   const rrPath = createLinePath(rrs, getYRR);
@@ -101,18 +152,10 @@ export function renderVitalsChart(container, vitalsData = []) {
   let dotsHtml = '';
   sorted.forEach((d, i) => {
     const x = getX(i);
-    const bpSys = bpHs[i];
-    const bpDia = bpLs[i];
     const p = pulses[i];
     const t = temps[i];
     const r = rrs[i];
 
-    if (bpSys && !isNaN(bpSys)) {
-      dotsHtml += `<circle cx="${x}" cy="${getYLeft(bpSys)}" r="4" fill="#3f603d" stroke="#fff" stroke-width="1.5"><title>BP Sys: ${bpSys}</title></circle>`;
-    }
-    if (bpDia && !isNaN(bpDia)) {
-      dotsHtml += `<circle cx="${x}" cy="${getYLeft(bpDia)}" r="4" fill="#60805e" stroke="#fff" stroke-width="1.5"><title>BP Dia: ${bpDia}</title></circle>`;
-    }
     if (p && !isNaN(p)) {
       dotsHtml += `<circle cx="${x}" cy="${getYLeft(p)}" r="4" fill="#d32f2f" stroke="#fff" stroke-width="1.5"><title>Pulse/HR: ${p} bpm</title></circle>`;
     }
@@ -134,9 +177,11 @@ export function renderVitalsChart(container, vitalsData = []) {
       <!-- Grid -->
       ${gridHtml}
 
+      <!-- Unified Blood Pressure (Range Band + Barbell Connectors) -->
+      ${bpBandHtml}
+      ${bpMarkersHtml}
+
       <!-- Series Lines with animated dashoffset -->
-      <path d="${bpHighPath}" fill="none" stroke="#3f603d" stroke-width="2.5" class="chart-line" />
-      <path d="${bpLowPath}" fill="none" stroke="#60805e" stroke-width="2" stroke-dasharray="4,2" class="chart-line" />
       <path d="${pulsePath}" fill="none" stroke="#d32f2f" stroke-width="2.5" class="chart-line" />
       <path d="${tempPath}" fill="none" stroke="#000000" stroke-width="2.5" class="chart-line" />
       <path d="${rrPath}" fill="none" stroke="#1976d2" stroke-width="2.5" class="chart-line" />
