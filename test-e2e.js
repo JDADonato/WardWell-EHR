@@ -299,6 +299,30 @@ async function runTest() {
     await evaluate('document.getElementById("btn-cancel-edit").click()');
     await delay(300);
 
+    // 6e. Verifying MAR Specific Administration Times & Shifts
+    console.log('6e. Verifying Medication Administration Record Specific Administration Times & Shifts...');
+    await evaluate('window.location.hash = "#/patients/pt_delacruz01/mar"');
+    await delay(300);
+    const marAdminCardsCount = await evaluate('document.querySelectorAll(".mar-admin-card").length');
+    const marAdminTimesCount = await evaluate('document.querySelectorAll(".mar-admin-time").length');
+    const marHas08Time = await evaluate('Array.from(document.querySelectorAll(".mar-admin-time")).some(el => el.textContent.includes("08:00"))');
+    const marHas73Shift = await evaluate('Array.from(document.querySelectorAll(".mar-admin-shift")).some(el => el.textContent.includes("7-3"))');
+    console.log(`   MAR Admin Cards: ${marAdminCardsCount} | Admin Times Count: ${marAdminTimesCount} | Has "08:00": ${marHas08Time} | Has "7-3": ${marHas73Shift}`);
+    if (marAdminCardsCount === 0 || marAdminTimesCount === 0 || !marHas08Time || !marHas73Shift) {
+      throw new Error('MAR did not properly render specific administration times alongside shifts!');
+    }
+
+    // Check MAR Edit Mode displays time inputs
+    await evaluate('document.getElementById("btn-toggle-edit-mode").click()');
+    await delay(300);
+    const marTimeInputsCount = await evaluate('document.querySelectorAll(".mar-time-input").length');
+    console.log(`   MAR Edit Mode Time Inputs Count: ${marTimeInputsCount}`);
+    if (marTimeInputsCount === 0) {
+      throw new Error('MAR edit mode did not render time inputs for specific administration times!');
+    }
+    await evaluate('document.getElementById("btn-cancel-mar").click()');
+    await delay(300);
+
     // Test Edit Mode Toggle and Action Bar immediate reactivity
     console.log('7. Testing View -> Edit Mode Toggle on Vitals Form and Action Bar Reactivity...');
     await evaluate('window.location.hash = "#/patients/pt_delacruz01/vitals"');

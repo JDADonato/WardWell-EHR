@@ -342,6 +342,7 @@ export const SEED_PATIENTS = [
           orderedBy: 'Dr. Alicia Ramos',
           startDate: '2026-10-18',
           slots: { slot_7_3: 'Given', slot_3_11: 'Not yet', slot_11_7: 'Not yet' },
+          slotTimes: { slot_7_3: '08:00', slot_3_11: '16:00', slot_11_7: '00:00' },
           nurseInitials: 'CAF'
         },
         {
@@ -354,6 +355,7 @@ export const SEED_PATIENTS = [
           orderedBy: 'Dr. Alicia Ramos',
           startDate: '2026-10-18',
           slots: { slot_7_3: 'Given', slot_3_11: 'Not yet', slot_11_7: 'Not yet' },
+          slotTimes: { slot_7_3: '09:00', slot_3_11: '16:00', slot_11_7: '00:00' },
           nurseInitials: 'CAF'
         },
         {
@@ -366,6 +368,7 @@ export const SEED_PATIENTS = [
           orderedBy: 'Dr. Alicia Ramos',
           startDate: '2026-10-18',
           slots: { slot_7_3: 'Given', slot_3_11: 'Held', slot_11_7: 'Not yet' },
+          slotTimes: { slot_7_3: '10:30', slot_3_11: '14:00', slot_11_7: '22:00' },
           nurseInitials: 'JT'
         },
         {
@@ -378,6 +381,7 @@ export const SEED_PATIENTS = [
           orderedBy: 'Dr. Alicia Ramos',
           startDate: '2026-10-18',
           slots: { slot_7_3: 'Given', slot_3_11: 'Not yet', slot_11_7: 'Not yet' },
+          slotTimes: { slot_7_3: '08:00', slot_3_11: '16:00', slot_11_7: '00:00' },
           nurseInitials: 'CAF'
         },
         {
@@ -390,6 +394,7 @@ export const SEED_PATIENTS = [
           orderedBy: 'Dr. Alicia Ramos',
           startDate: '2026-10-19',
           slots: { slot_7_3: 'Given', slot_3_11: 'Given', slot_11_7: 'Not yet' },
+          slotTimes: { slot_7_3: '08:00', slot_3_11: '16:00', slot_11_7: '00:00' },
           nurseInitials: 'MB'
         }
       ],
@@ -729,6 +734,7 @@ R > No signs of respiratory distress noted. Sputum is now clear and reduced in v
           orderedBy: 'Dr. Llacer',
           startDate: '2026-10-19',
           slots: { slot_7_3: 'Not yet', slot_3_11: 'Given', slot_11_7: 'Given' },
+          slotTimes: { slot_7_3: '08:00', slot_3_11: '16:00', slot_11_7: '00:00' },
           nurseInitials: 'CAF'
         },
         {
@@ -741,6 +747,7 @@ R > No signs of respiratory distress noted. Sputum is now clear and reduced in v
           orderedBy: 'Dr. Llacer',
           startDate: '2026-10-19',
           slots: { slot_7_3: 'Not yet', slot_3_11: 'Given', slot_11_7: 'Not yet' },
+          slotTimes: { slot_7_3: '08:00', slot_3_11: '18:00', slot_11_7: '00:00' },
           nurseInitials: 'CAF'
         },
         {
@@ -753,6 +760,7 @@ R > No signs of respiratory distress noted. Sputum is now clear and reduced in v
           orderedBy: 'Dr. Llacer',
           startDate: '2026-10-19',
           slots: { slot_7_3: 'Not yet', slot_3_11: 'Given', slot_11_7: 'Not yet' },
+          slotTimes: { slot_7_3: '08:00', slot_3_11: '18:00', slot_11_7: '00:00' },
           nurseInitials: 'CAF'
         }
       ],
@@ -994,6 +1002,7 @@ R > Left side body weakness and slurred speech improved. IV line patent and infu
           orderedBy: 'Dr. Ferdinand Gomez',
           startDate: '2026-10-18',
           slots: { slot_7_3: 'Given', slot_3_11: 'Given', slot_11_7: 'Not yet' },
+          slotTimes: { slot_7_3: '08:00', slot_3_11: '20:00', slot_11_7: '00:00' },
           nurseInitials: 'JT'
         },
         {
@@ -1006,6 +1015,7 @@ R > Left side body weakness and slurred speech improved. IV line patent and infu
           orderedBy: 'Dr. Ferdinand Gomez',
           startDate: '2026-10-18',
           slots: { slot_7_3: 'Given', slot_3_11: 'Not yet', slot_11_7: 'Not yet' },
+          slotTimes: { slot_7_3: '11:00', slot_3_11: '17:00', slot_11_7: '23:00' },
           nurseInitials: 'JT'
         }
       ],

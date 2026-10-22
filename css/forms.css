@@ -383,14 +383,145 @@
   min-width: 60px;
 }
 
+.mar-slots-container {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: center;
+  align-items: stretch;
+  flex-wrap: nowrap;
+}
+
+.mar-admin-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.45rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background-color: var(--mist);
+  min-width: 68px;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.mar-admin-time {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.mar-admin-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.67rem;
+  margin-top: 2px;
+  line-height: 1;
+}
+
+.mar-admin-shift {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.mar-admin-status {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+}
+
+/* MAR Status Colors */
+.mar-status-given {
+  background-color: var(--status-admitted-bg);
+  border-color: #2e7d32;
+  color: #1b5e20;
+}
+.mar-status-given .mar-admin-time {
+  color: #1b5e20;
+}
+.mar-status-given .mar-admin-shift {
+  color: #2e7d32;
+}
+
+.mar-status-held {
+  background-color: var(--status-fordischarge-bg);
+  border-color: #f57f17;
+  color: #e65100;
+}
+.mar-status-held .mar-admin-time {
+  color: #e65100;
+}
+
+.mar-status-refused {
+  background-color: var(--status-critical-bg);
+  border-color: #c62828;
+  color: #b71c1c;
+}
+.mar-status-refused .mar-admin-time {
+  color: #b71c1c;
+}
+
+.mar-status-notyet {
+  background-color: var(--mist);
+  border-color: var(--border-color);
+  color: var(--text-muted);
+}
+
+/* Edit Mode MAR Slots */
+.mar-edit-slot-group {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.mar-edit-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.25rem 0.35rem;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  min-width: 82px;
+}
+
+.mar-edit-slot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 3px;
+  gap: 0.2rem;
+}
+
+.mar-edit-shift-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.mar-time-input {
+  text-align: center;
+  font-size: 0.74rem;
+  padding: 1px 3px;
+  height: 25px;
+  min-width: 72px;
+  width: 100%;
+}
+
 .mar-slot-btn {
-  width: 32px;
-  height: 32px;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 4px;
   border-radius: var(--radius-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   border: 1px solid var(--border-color);
   cursor: pointer;

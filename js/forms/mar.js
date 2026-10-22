@@ -6,6 +6,12 @@ import { showConfirm } from '../ui/confirm.js';
 
 const STATUS_CYCLE = ['Not yet', 'Given', 'Held', 'Refused'];
 
+const MAR_SHIFTS = [
+  { key: 'slot_7_3', shift: '7-3', defaultTime: '08:00', label: '7am - 3pm (Day Shift)' },
+  { key: 'slot_3_11', shift: '3-11', defaultTime: '16:00', label: '3pm - 11pm (Evening Shift)' },
+  { key: 'slot_11_7', shift: '11-7', defaultTime: '00:00', label: '11pm - 7am (Night Shift)' }
+];
+
 export const MarForm = {
   renderView(patient, onEdit, onPrint) {
     const meds = Array.isArray(patient.forms?.mar) ? patient.forms.mar : [];
@@ -35,9 +41,22 @@ export const MarForm = {
         `;
       } else {
         catMeds.forEach(m => {
-          const s7 = m.slots?.slot_7_3 || m.slots?.slot_08 || 'Not yet';
-          const s3 = m.slots?.slot_3_11 || m.slots?.slot_16 || 'Not yet';
-          const s11 = m.slots?.slot_11_7 || m.slots?.slot_00 || 'Not yet';
+          const slotsHtml = MAR_SHIFTS.map(s => {
+            const status = m.slots?.[s.key] || 'Not yet';
+            const time = m.slotTimes?.[s.key] || s.defaultTime;
+            const statusClass = status === 'Given' ? 'mar-status-given' :
+                                status === 'Held' ? 'mar-status-held' :
+                                status === 'Refused' ? 'mar-status-refused' : 'mar-status-notyet';
+            return `
+              <div class="mar-admin-card ${statusClass}" title="${s.label}: ${status} at ${time}">
+                <div class="mar-admin-time">${time}</div>
+                <div class="mar-admin-sub">
+                  <span class="mar-admin-shift">${s.shift}</span>
+                  <span class="mar-admin-status">${status}</span>
+                </div>
+              </div>
+            `;
+          }).join('');
 
           rows += `
             <tr>
@@ -50,10 +69,8 @@ export const MarForm = {
               <td>${m.frequency || '—'}</td>
               <td style="white-space: nowrap;">${formatDate(m.startDate, 'short')}</td>
               <td>
-                <div style="display: flex; gap: 0.35rem; justify-content: center;">
-                  <span class="mar-slot-btn ${s7 === 'Given' ? 'mar-slot-given' : s7 === 'Held' ? 'mar-slot-held' : s7 === 'Refused' ? 'mar-slot-refused' : 'mar-slot-notyet'}" title="7am-3pm: ${s7}">7-3</span>
-                  <span class="mar-slot-btn ${s3 === 'Given' ? 'mar-slot-given' : s3 === 'Held' ? 'mar-slot-held' : s3 === 'Refused' ? 'mar-slot-refused' : 'mar-slot-notyet'}" title="3pm-11pm: ${s3}">3-11</span>
-                  <span class="mar-slot-btn ${s11 === 'Given' ? 'mar-slot-given' : s11 === 'Held' ? 'mar-slot-held' : s11 === 'Refused' ? 'mar-slot-refused' : 'mar-slot-notyet'}" title="11pm-7am: ${s11}">11-7</span>
+                <div class="mar-slots-container">
+                  ${slotsHtml}
                 </div>
               </td>
               <td style="text-align: center; font-weight: 600; font-family: var(--font-mono);">${m.nurseInitials || 'RN'}</td>
@@ -71,12 +88,12 @@ export const MarForm = {
             <table class="data-table mar-table">
               <thead>
                 <tr>
-                  <th style="width: 28%;">Medication & Prescriber</th>
-                  <th style="width: 12%;">Dose</th>
-                  <th style="width: 10%;">Route</th>
-                  <th style="width: 14%;">Frequency</th>
-                  <th style="width: 12%;">Start Date</th>
-                  <th style="width: 16%; text-align: center;">Shift Slots (7-3 / 3-11 / 11-7)</th>
+                  <th style="width: 25%;">Medication & Prescriber</th>
+                  <th style="width: 10%;">Dose</th>
+                  <th style="width: 8%;">Route</th>
+                  <th style="width: 12%;">Frequency</th>
+                  <th style="width: 10%;">Start Date</th>
+                  <th style="width: 27%; text-align: center;">Administration Schedule & Time (7-3 / 3-11 / 11-7)</th>
                   <th style="width: 8%; text-align: center;">Initials</th>
                 </tr>
               </thead>
@@ -103,11 +120,11 @@ export const MarForm = {
 
       <!-- Legend -->
       <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; font-size: 0.78rem;">
-        <span style="font-weight: 600; color: var(--text-secondary);">SLOT STATUS:</span>
-        <span style="display: inline-flex; align-items: center; gap: 0.25rem;"><span class="mar-slot-btn mar-slot-given" style="width: 20px; height: 20px; font-size: 0.65rem;">G</span> Given</span>
-        <span style="display: inline-flex; align-items: center; gap: 0.25rem;"><span class="mar-slot-btn mar-slot-held" style="width: 20px; height: 20px; font-size: 0.65rem;">H</span> Held</span>
-        <span style="display: inline-flex; align-items: center; gap: 0.25rem;"><span class="mar-slot-btn mar-slot-refused" style="width: 20px; height: 20px; font-size: 0.65rem;">R</span> Refused</span>
-        <span style="display: inline-flex; align-items: center; gap: 0.25rem;"><span class="mar-slot-btn mar-slot-notyet" style="width: 20px; height: 20px; font-size: 0.65rem;">—</span> Not yet</span>
+        <span style="font-weight: 600; color: var(--text-secondary);">ADMINISTRATION STATUS:</span>
+        <span style="display: inline-flex; align-items: center; gap: 0.35rem;"><span class="mar-admin-card mar-status-given" style="min-width: 50px; padding: 2px 4px;"><span class="mar-admin-time" style="font-size: 0.7rem;">TIME</span><span class="mar-admin-status" style="font-size: 0.6rem;">Given</span></span> Dose Given</span>
+        <span style="display: inline-flex; align-items: center; gap: 0.35rem;"><span class="mar-admin-card mar-status-held" style="min-width: 50px; padding: 2px 4px;"><span class="mar-admin-time" style="font-size: 0.7rem;">TIME</span><span class="mar-admin-status" style="font-size: 0.6rem;">Held</span></span> Dose Held</span>
+        <span style="display: inline-flex; align-items: center; gap: 0.35rem;"><span class="mar-admin-card mar-status-refused" style="min-width: 50px; padding: 2px 4px;"><span class="mar-admin-time" style="font-size: 0.7rem;">TIME</span><span class="mar-admin-status" style="font-size: 0.6rem;">Refused</span></span> Dose Refused</span>
+        <span style="display: inline-flex; align-items: center; gap: 0.35rem;"><span class="mar-admin-card mar-status-notyet" style="min-width: 50px; padding: 2px 4px;"><span class="mar-admin-time" style="font-size: 0.7rem;">TIME</span><span class="mar-admin-status" style="font-size: 0.6rem;">Not yet</span></span> Scheduled / Open</span>
       </div>
 
       ${tablesHtml}
@@ -124,6 +141,12 @@ export const MarForm = {
 
   renderEdit(patient, onSave, onCancel) {
     let meds = Array.isArray(patient.forms?.mar) ? JSON.parse(JSON.stringify(patient.forms.mar)) : [];
+    // Ensure all items have slots and slotTimes maps
+    meds.forEach(m => {
+      if (!m.slots) m.slots = {};
+      if (!m.slotTimes) m.slotTimes = {};
+    });
+
     const initialMedsCount = meds.length;
     // Snapshot of existing administered doses so they cannot be overwritten
     const initialSlotsMap = meds.map(m => ({ ...(m.slots || {}) }));
@@ -151,21 +174,34 @@ export const MarForm = {
         const lockAttr = isExisting ? 'disabled' : '';
         const lockRowClass = isExisting ? 'locked-record-row' : '';
 
-        const s7 = m.slots?.slot_7_3 || 'Not yet';
-        const s3 = m.slots?.slot_3_11 || 'Not yet';
-        const s11 = m.slots?.slot_11_7 || 'Not yet';
+        const slotsEditHtml = MAR_SHIFTS.map(s => {
+          const status = m.slots?.[s.key] || 'Not yet';
+          const time = m.slotTimes?.[s.key] || s.defaultTime;
+          const wasAdministered = isExisting && initialSlotsMap[idx]?.[s.key] && initialSlotsMap[idx][s.key] !== 'Not yet';
+          const statusBtnClass = status === 'Given' ? 'mar-slot-given' :
+                                 status === 'Held' ? 'mar-slot-held' :
+                                 status === 'Refused' ? 'mar-slot-refused' : 'mar-slot-notyet';
 
-        const is7Locked = isExisting && initialSlotsMap[idx]?.slot_7_3 && initialSlotsMap[idx].slot_7_3 !== 'Not yet';
-        const is3Locked = isExisting && initialSlotsMap[idx]?.slot_3_11 && initialSlotsMap[idx].slot_3_11 !== 'Not yet';
-        const is11Locked = isExisting && initialSlotsMap[idx]?.slot_11_7 && initialSlotsMap[idx].slot_11_7 !== 'Not yet';
-
-        function renderSlotButton(slotKey, slotVal, isLocked) {
-          const statusClass = slotVal === 'Given' ? 'mar-slot-given' : slotVal === 'Held' ? 'mar-slot-held' : slotVal === 'Refused' ? 'mar-slot-refused' : 'mar-slot-notyet';
-          if (isLocked) {
-            return `<button type="button" class="mar-slot-btn ${statusClass}" disabled style="opacity: 0.9; cursor: not-allowed;" title="Previously recorded administration: ${slotVal} (Permanent Record)">${slotVal[0]}<span style="font-size: 9px; vertical-align: top;">🔒</span></button>`;
-          }
-          return `<button type="button" class="mar-slot-btn slot-toggle ${statusClass}" data-idx="${idx}" data-slot="${slotKey}" title="Click to cycle status">${slotVal[0]}</button>`;
-        }
+          return `
+            <div class="mar-edit-slot ${wasAdministered ? 'locked-record-row' : ''}">
+              <div class="mar-edit-slot-header">
+                <span class="mar-edit-shift-tag">${s.shift}</span>
+                ${wasAdministered ? `
+                  <button type="button" class="mar-slot-btn ${statusBtnClass}" disabled style="opacity: 0.9; cursor: not-allowed;" title="Previously recorded: ${status} at ${time} (Permanent Record)">
+                    ${status[0]}<span style="font-size: 8px; vertical-align: top;">🔒</span>
+                  </button>
+                ` : `
+                  <button type="button" class="mar-slot-btn slot-toggle ${statusBtnClass}" data-idx="${idx}" data-slot="${s.key}" title="Click to cycle status: Not yet → Given → Held → Refused">
+                    ${status === 'Not yet' ? '—' : status[0]}
+                  </button>
+                `}
+              </div>
+              <input type="time" class="form-control form-control-sm mar-time-input font-mono time-val" 
+                     data-idx="${idx}" data-slot="${s.key}" value="${time}" 
+                     ${wasAdministered ? 'disabled title="Locked administration time (Permanent Record)"' : ''} />
+            </div>
+          `;
+        }).join('');
 
         return `
           <tr class="${lockRowClass}">
@@ -182,10 +218,8 @@ export const MarForm = {
             <td><input type="text" class="form-control form-control-sm freq-val" data-idx="${idx}" value="${m.frequency || 'OD'}" placeholder="e.g. q8h" style="width: 90px;" ${lockAttr} /></td>
             <td><input type="date" class="form-control form-control-sm date-val" data-idx="${idx}" value="${m.startDate || getCurrentISODate()}" style="width: 130px;" ${lockAttr} /></td>
             <td>
-              <div style="display: flex; gap: 0.25rem;">
-                ${renderSlotButton('slot_7_3', s7, is7Locked)}
-                ${renderSlotButton('slot_3_11', s3, is3Locked)}
-                ${renderSlotButton('slot_11_7', s11, is11Locked)}
+              <div class="mar-edit-slot-group">
+                ${slotsEditHtml}
               </div>
             </td>
             <td><input type="text" class="form-control form-control-sm init-val" data-idx="${idx}" value="${m.nurseInitials || 'RN'}" style="width: 55px;" /></td>
@@ -212,6 +246,14 @@ export const MarForm = {
       tbody.querySelectorAll('.freq-val:not([disabled])').forEach(el => el.addEventListener('input', e => { meds[parseInt(e.target.dataset.idx, 10)].frequency = e.target.value; }));
       tbody.querySelectorAll('.date-val:not([disabled])').forEach(el => el.addEventListener('change', e => { meds[parseInt(e.target.dataset.idx, 10)].startDate = e.target.value; }));
       tbody.querySelectorAll('.init-val').forEach(el => el.addEventListener('input', e => { meds[parseInt(e.target.dataset.idx, 10)].nurseInitials = e.target.value; }));
+
+      // Time inputs in slots
+      tbody.querySelectorAll('.time-val:not([disabled])').forEach(el => el.addEventListener('change', e => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        const slotKey = e.target.dataset.slot;
+        if (!meds[idx].slotTimes) meds[idx].slotTimes = {};
+        meds[idx].slotTimes[slotKey] = e.target.value;
+      }));
 
       // Slot cycle buttons (only un-disabled/unlocked)
       tbody.querySelectorAll('.slot-toggle').forEach(btn => btn.addEventListener('click', (e) => {
@@ -241,11 +283,11 @@ export const MarForm = {
     container.innerHTML = `
       ${renderFormStandardHeader(patient, 'Medication Administration Record (Edit Mode)', 'WW-MAR-08')}
 
-      ${renderImmutableNotice("Medication Administration Record", "Previously ordered medications and already recorded administration doses are permanent clinical entries and cannot be altered or removed. New doses can be recorded for open slots, and new medications can be added below.")}
+      ${renderImmutableNotice("Medication Administration Record", "Previously ordered medications and already recorded administration doses/times are permanent clinical entries and cannot be altered or removed. New doses and administration times can be recorded for open slots, and new medications can be added below.")}
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <div style="font-size: 0.84rem; color: var(--text-secondary);">
-          Click shift slot buttons (7-3, 3-11, 11-7) to cycle between Not Yet &rarr; Given &rarr; Held &rarr; Refused.
+          Record specific administration times and toggle shift statuses (7-3, 3-11, 11-7) between Not Yet &rarr; Given &rarr; Held &rarr; Refused.
         </div>
         <button type="button" class="btn btn-sm btn-secondary" id="btn-add-mar-row">
           + Add Medication
@@ -256,12 +298,12 @@ export const MarForm = {
         <table class="data-table">
           <thead>
             <tr>
-              <th style="width: 25%;">Category & Medication</th>
+              <th style="width: 24%;">Category & Medication</th>
               <th>Dose</th>
               <th>Route</th>
               <th>Frequency</th>
               <th>Start Date</th>
-              <th style="width: 130px;">Slots</th>
+              <th style="width: 280px; text-align: center;">Admin Slots & Specific Time</th>
               <th>Initials</th>
               <th style="width: 75px; text-align: center;">Status</th>
             </tr>
@@ -289,6 +331,7 @@ export const MarForm = {
         orderedBy: patient.attendingPhysician || 'Attending MD',
         startDate: getCurrentISODate(),
         slots: { slot_7_3: 'Not yet', slot_3_11: 'Not yet', slot_11_7: 'Not yet' },
+        slotTimes: { slot_7_3: '08:00', slot_3_11: '16:00', slot_11_7: '00:00' },
         nurseInitials: 'RN'
       });
       renderRows();
